@@ -16,7 +16,15 @@ public class UserSignupService {
     }
 
     public User singUp(User user) {
-        user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
-        return userRepository.save(user);
+        if (!doesUserExist(user.getEmail())) {
+            user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
+            return userRepository.save(user);
+        }else {
+            return null;
+        }
+    }
+
+    public boolean doesUserExist(String email) {
+        return userRepository.findByEmail(email).isPresent();
     }
 }
