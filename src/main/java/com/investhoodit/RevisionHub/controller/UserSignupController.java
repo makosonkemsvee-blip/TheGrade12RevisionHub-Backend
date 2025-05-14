@@ -1,6 +1,6 @@
 package com.investhoodit.RevisionHub.controller;
 
-import com.investhoodit.RevisionHub.UserSignupService;
+import com.investhoodit.RevisionHub.service.UserSignupService;
 import com.investhoodit.RevisionHub.model.User;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
