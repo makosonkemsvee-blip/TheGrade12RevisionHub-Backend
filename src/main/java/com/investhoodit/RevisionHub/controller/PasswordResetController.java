@@ -32,6 +32,7 @@ public class PasswordResetController {
         try {
             String message = passwordResetService.resetPassword(passwordResetDTO);
             return ResponseEntity.ok(message); // 200 OK, e.g., "Password reset successful"
+            //System.out.println();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid OTP or password"); // 400 Bad Request
         } catch (Exception e) {
