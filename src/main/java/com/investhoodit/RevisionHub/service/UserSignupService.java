@@ -15,7 +15,7 @@ public class UserSignupService {
         this.passwordEncoderService = passwordEncoderService;
     }
 
-    public User singUp(User user) {
+    public User signUp(User user) {
         if (!doesUserExist(user.getEmail())) {
             user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
             return userRepository.save(user);

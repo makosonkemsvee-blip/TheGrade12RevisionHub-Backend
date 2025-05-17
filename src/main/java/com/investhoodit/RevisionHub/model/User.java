@@ -1,9 +1,9 @@
 package com.investhoodit.RevisionHub.model;
 
-import java.util.List;
-
-
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "user_tbl")
@@ -17,8 +17,13 @@ public class User {
     private String idNumber;
     private String phoneNumber;
 
+    @NotNull(message = "Email is required")
+    @Email(message = "Invalid email format")
     @Column(unique = true)
     private String email;
+
+    @NotNull(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
     @Lob
     private byte[] profilePicture;
