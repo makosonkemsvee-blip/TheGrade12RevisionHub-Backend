@@ -25,19 +25,14 @@ public class UserSignupController {
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<ApiResponse> signUp(@Valid @RequestBody UserDTO userDTO) {
         try {
-            User user = new User();
-            user.setFirstName(userDTO.getFirstName());
-            user.setLastName(userDTO.getLastName());
-            user.setIdNumber(userDTO.getIdNumber());
-            user.setEmail(userDTO.getEmail());
-            user.setPassword(userDTO.getPassword());
-            user.setPhoneNumber(userDTO.getPhoneNumber());
-            user.setRole(userDTO.getRole());
-            user.setFirstLogin(true);
-
-            User createdUser = userSignupService.signUp(user);
-            return ResponseEntity.status(201)
-                    .body(new ApiResponse("User created successfully", true, createdUser));
+            User createdUser = userSignupService.signUp(userDTO);
+            if (createdUser != null) {
+                return ResponseEntity.status(201)
+                        .body(new ApiResponse("User created successfully", true, createdUser));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(new ApiResponse("Email already exist.", false, null));
+            }
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse("Invalid input: " + e.getMessage(), false, null));

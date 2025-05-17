@@ -1,5 +1,6 @@
 package com.investhoodit.RevisionHub.service;
 
+import com.investhoodit.RevisionHub.dto.UserDTO;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -15,16 +16,24 @@ public class UserSignupService {
         this.passwordEncoderService = passwordEncoderService;
     }
 
-    public User signUp(User user) {
-        if (!doesUserExist(user.getEmail())) {
-            user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
-            return userRepository.save(user);
-        }else {
-            return null;
-        }
-    }
-
-    public boolean doesUserExist(String email) {
-        return userRepository.findByEmail(email).isPresent();
+    public User signUp(UserDTO userDTO) throws Exception {
+       try {
+           if (userRepository.findByEmail(userDTO.getEmail()).isEmpty()) {
+               User user = new User();
+               user.setFirstName(userDTO.getFirstName());
+               user.setLastName(userDTO.getLastName());
+               user.setIdNumber(userDTO.getIdNumber());
+               user.setEmail(userDTO.getEmail());
+               user.setPassword(userDTO.getPassword());
+               user.setPhoneNumber(userDTO.getPhoneNumber());
+               user.setRole(userDTO.getRole());
+               user.setFirstLogin(true);
+               user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
+               return userRepository.save(user);
+           }
+       }catch (Exception e){
+           throw new Exception("User already exists");
+       }
+        return null;
     }
 }

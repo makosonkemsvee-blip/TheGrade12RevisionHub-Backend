@@ -23,7 +23,7 @@ public class User {
     private String email;
 
     @NotNull(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 8 characters")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
     @Lob
     private byte[] profilePicture;
