@@ -64,7 +64,7 @@ public class AddSubjectService {
 		}
 
 		// Check if subject exists in database
-		Subject subject = subjectRepository.findById("English")
+		Subject subject = subjectRepository.findById(dto.getSubjectName())
 				.orElseThrow(() -> new RuntimeException("Subject not found."));
 
 		if (subject == null) {
@@ -78,9 +78,11 @@ public class AddSubjectService {
 			}
 
 			// Add subject to user
-			UserSubjects studentSubjects = new UserSubjects(subject, user);
-			studentSubjects.setCreatedAt(new Date());
-		    userSubjectsRepository.save(studentSubjects);
+			UserSubjects userSubjects = new UserSubjects();
+			userSubjects.setUser(user);
+			userSubjects.setSubject(subject);
+			userSubjects.setCreatedAt(new Date());
+		    userSubjectsRepository.save(userSubjects);
 			return true;
 		}
 
