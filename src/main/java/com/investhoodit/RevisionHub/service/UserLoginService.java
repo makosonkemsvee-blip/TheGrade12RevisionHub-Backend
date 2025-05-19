@@ -4,7 +4,6 @@ import com.investhoodit.RevisionHub.dto.LoginRequest;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -55,5 +54,4 @@ public class UserLoginService {
                 .signWith(key)
                 .compact();
     }
-
 }
