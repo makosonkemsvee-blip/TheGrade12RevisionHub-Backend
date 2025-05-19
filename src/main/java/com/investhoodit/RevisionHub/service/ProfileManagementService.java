@@ -22,27 +22,26 @@ public class ProfileManagementService {
     }
 
     public ResponseEntity<ApiResponse> updateProfile(ProfileUpdateRequest profileRequest) {
-        // Get the logged-in user's email from the JWT token
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (profileRequest != null) {
-            // Update fields if provided
-            if (profileRequest.getFirstName() != null) {
-                user.setFirstName(profileRequest.getFirstName());
-            }
-            if (profileRequest.getLastName() != null) {
-                user.setLastName(profileRequest.getLastName());
-            }
-            if (profileRequest.getPhoneNumber() != null) {
-                user.setPhoneNumber(profileRequest.getPhoneNumber());
-            }
-        }else {
-            throw new RuntimeException("Everything already up-to-date");
+        if (profileRequest == null || (profileRequest.getFirstName() == null && profileRequest.getLastName() == null && profileRequest.getPhoneNumber() == null)) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("At least one field (firstName, lastName, phoneNumber) must be provided", false, null));
         }
 
-        // Save updated user
+        if (profileRequest.getFirstName() != null) {
+            user.setFirstName(profileRequest.getFirstName());
+        }
+        if (profileRequest.getLastName() != null) {
+            user.setLastName(profileRequest.getLastName());
+        }
+        if (profileRequest.getPhoneNumber() != null) {
+            user.setPhoneNumber(profileRequest.getPhoneNumber());
+        }
+
         userRepository.save(user);
 
         return ResponseEntity.status(200)
@@ -50,18 +49,23 @@ public class ProfileManagementService {
     }
 
     public ResponseEntity<ApiResponse> updateProfilePicture(MultipartFile profilePicture) throws IOException {
-        // Get the logged-in user's email from the JWT token
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if (profilePicture != null && !profilePicture.isEmpty()) {
-            byte[] profilePictureBytes = profilePicture.getBytes();
-            user.setProfilePicture(profilePictureBytes);
+
+        if (profilePicture == null || profilePicture.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Profile picture file is required", false, null));
         }
+
+        byte[] profilePictureBytes = profilePicture.getBytes();
+        user.setProfilePicture(profilePictureBytes);
+
         userRepository.save(user);
 
-        return ResponseEntity.ok()
-                .body(new ApiResponse("Profile updated successfully", true, user));
+        return ResponseEntity.status(200)
+                .body(new ApiResponse("Profile picture updated successfully", true, user));
     }
 
     public ResponseEntity<byte[]> getProfilePicture(Long userId) {

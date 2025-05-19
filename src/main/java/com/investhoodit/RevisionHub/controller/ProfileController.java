@@ -16,19 +16,24 @@ import java.io.IOException;
 @RequestMapping("/api/profile")
 public class ProfileController {
 
-    @Autowired
-    private ProfileManagementService profileManagementService;
+    private final ProfileManagementService profileManagementService;
+
+    public ProfileController(ProfileManagementService profileManagementService) {
+        this.profileManagementService = profileManagementService;
+    }
 
     @PutMapping(path = "/update-profile", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse> updateProfile(
-            @RequestPart(value = "profile", required = false) ProfileUpdateRequest profileRequest){
+            @Valid @RequestBody ProfileUpdateRequest profileRequest) {
         return profileManagementService.updateProfile(profileRequest);
     }
 
     @PutMapping(path = "/update-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse> updateProfilePicture(@RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture) throws IOException {
-       return profileManagementService.updateProfilePicture(profilePicture);
+    public ResponseEntity<ApiResponse> updateProfilePicture(
+            @RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture) throws IOException {
+        return profileManagementService.updateProfilePicture(profilePicture);
     }
+
     @GetMapping("/picture/{userId}")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long userId) {
         return profileManagementService.getProfilePicture(userId);

@@ -26,7 +26,7 @@ public class UserSignupService {
                user.setEmail(userDTO.getEmail());
                user.setPassword(userDTO.getPassword());
                user.setPhoneNumber(userDTO.getPhoneNumber());
-               user.setRole(userDTO.getRole());
+               user.setRole("USER");
                user.setFirstLogin(true);
                user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
                return userRepository.save(user);
