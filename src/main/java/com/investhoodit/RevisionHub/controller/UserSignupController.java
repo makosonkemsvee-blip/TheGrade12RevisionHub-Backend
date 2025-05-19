@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/signup")
+@RequestMapping("/api/signup")
 public class UserSignupController {
 
     private final UserSignupService userSignupService;
