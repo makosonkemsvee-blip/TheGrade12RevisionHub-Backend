@@ -1,6 +1,7 @@
 package com.investhoodit.RevisionHub.service;
 
 import com.investhoodit.RevisionHub.model.QuestionPaper;
+import com.investhoodit.RevisionHub.model.Subject;
 import com.investhoodit.RevisionHub.repository.QuestionPaperRepository;
 import com.investhoodit.RevisionHub.repository.SubjectRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,7 @@ public class QuestionPaperService {
         File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
 
         List<QuestionPaper> questionPapers = new ArrayList<>();
+        List<Subject> subjects = subjectRepository.findAll();
 
         if (files != null) {
             for (File file : files) {
@@ -44,6 +46,12 @@ public class QuestionPaperService {
                         pdfFile.setFileName(file.getName());
                         pdfFile.setFileData(fileData);
 
+                        for (Subject subject : subjects) {
+                            if (subs(pdfFile.getFileName()).equalsIgnoreCase(subject.getSubjectName())) {
+                                pdfFile.setSubject(subject);
+                            }
+                        }
+
                         questionPapers.add(pdfFile);
                     }
             }
@@ -52,6 +60,14 @@ public class QuestionPaperService {
                 questionPaperRepository.saveAll(questionPapers);
             }
 
+    }
+
+    private String subs(String word) {
+        int spaceIndex = word.indexOf(" ");
+        if (spaceIndex == -1) { // No space found
+            return word; // Return the entire word
+        }
+        return word.substring(0, spaceIndex);
     }
 
     public List<QuestionPaper> allQuestionPapers() {
@@ -65,6 +81,7 @@ public class QuestionPaperService {
     public QuestionPaper getPaperById(Long id) {
         return questionPaperRepository.findById(id).orElseThrow(() -> new RuntimeException("Paper not found"));
     }
+
 
     public Optional<QuestionPaper> findById(Long id) {
         return questionPaperRepository.findById(id);

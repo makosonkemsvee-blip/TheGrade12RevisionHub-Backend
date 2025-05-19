@@ -1,6 +1,5 @@
 package com.investhoodit.RevisionHub.dto;
 
-import com.investhoodit.RevisionHub.model.User;
 import lombok.Data;
 
 @Data

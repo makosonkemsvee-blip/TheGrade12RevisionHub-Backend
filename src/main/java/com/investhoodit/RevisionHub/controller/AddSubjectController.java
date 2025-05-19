@@ -25,7 +25,6 @@ public class AddSubjectController {
     public ResponseEntity<ApiResponse> addSubject(@RequestBody AddSubjectDTO dto) {
         try{
             boolean isAdded = addSubjectService.addSubject(dto);
-            System.out.println(isAdded);
             if (isAdded) {
                 return ResponseEntity.status(201)
                         .body(new ApiResponse("New subject added successfully.", true, dto));
