@@ -1,10 +1,12 @@
 package com.investhoodit.RevisionHub.service;
 
+import com.investhoodit.RevisionHub.dto.ProfileUpdateRequest;
+import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,42 +21,47 @@ public class ProfileManagementService {
         this.userRepository = userRepository;
     }
 
-    // Lana we will be updating the user first name and last name based on the logged-in user
-    public void updateUserFullName(User user, HttpSession session) {
-        // Retrieve the logged-in user from the session
-        User loggedInUser = (User)session.getAttribute("loggedInUser");
-        // Get the new details from the client side
-        String firstName = user.getFirstName();
-        String lastName = user.getLastName();
-        // Update the details with new details from the client side
-        loggedInUser.setFirstName(firstName);
-        loggedInUser.setLastName(lastName);
-        // Update the database
-        userRepository.save(loggedInUser);
+    public ResponseEntity<ApiResponse> updateProfile(ProfileUpdateRequest profileRequest) {
+        // Get the logged-in user's email from the JWT token
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (profileRequest != null) {
+            // Update fields if provided
+            if (profileRequest.getFirstName() != null) {
+                user.setFirstName(profileRequest.getFirstName());
+            }
+            if (profileRequest.getLastName() != null) {
+                user.setLastName(profileRequest.getLastName());
+            }
+            if (profileRequest.getPhoneNumber() != null) {
+                user.setPhoneNumber(profileRequest.getPhoneNumber());
+            }
+        }else {
+            throw new RuntimeException("Everything already up-to-date");
+        }
+
+        // Save updated user
+        userRepository.save(user);
+
+        return ResponseEntity.status(200)
+                .body(new ApiResponse("Profile updated successfully", true, user));
     }
 
-    // Lana we are updating the user phone number based on the logged in use
-    public void updateUserPhoneNumber(User user, HttpSession session) {
-        // Retrieve the logged-in user from the session
-        User loggedInUser = (User)session.getAttribute("loggedInUser");
-        // Get the new details from the client side
-        String phoneNumber = user.getPhoneNumber();
-        // Update the details with new details from the client side
-        loggedInUser.setPhoneNumber(phoneNumber);
-        // Update the database
-        userRepository.save(loggedInUser);
+    public ResponseEntity<ApiResponse> updateProfilePicture(MultipartFile profilePicture) throws IOException {
+        // Get the logged-in user's email from the JWT token
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            byte[] profilePictureBytes = profilePicture.getBytes();
+            user.setProfilePicture(profilePictureBytes);
+        }
+        userRepository.save(user);
 
-    }
-
-    // So lana we are updating the user profile picture
-    public void updateUserProfilePicture(MultipartFile profilePicture,HttpSession session) throws IOException {
-        // Retrieve the logged-in user from the session
-        User loggedInUser = (User)session.getAttribute("loggedInUser");
-        // Get the new details from the client side
-        byte[] profilePictureBytes = profilePicture.getBytes();
-        loggedInUser.setProfilePicture(profilePictureBytes);
-        // Update the database
-        userRepository.save(loggedInUser);
+        return ResponseEntity.ok()
+                .body(new ApiResponse("Profile updated successfully", true, user));
     }
 
     public ResponseEntity<byte[]> getProfilePicture(Long userId) {

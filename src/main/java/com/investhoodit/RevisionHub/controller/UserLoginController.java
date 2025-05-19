@@ -20,8 +20,9 @@ public class UserLoginController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         try {
-            userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
-            LoginResponse response = new LoginResponse(null, "Login successful");
+            String token = userService.authenticateAndGenerateToken(loginRequest);
+//          authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+            LoginResponse response = new LoginResponse(token, "Login successful");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new LoginResponse(null, e.getMessage()));
