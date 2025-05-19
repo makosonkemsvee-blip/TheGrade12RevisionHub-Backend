@@ -14,7 +14,8 @@ public class DigitalizedQuestionPaper {
     private Long PaperId;
     private String PaperTitle;
     private String subject;
-    private String percentage;
+    private Integer score;
+    private Integer year;
     private LocalDateTime submittedDate = LocalDateTime.now();
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
