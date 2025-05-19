@@ -21,6 +21,7 @@ public class UserLoginController {
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         try {
             String token = userService.authenticateAndGenerateToken(loginRequest);
+            System.out.println("================= "+token);
             LoginResponse response = new LoginResponse(token, "Login successful");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
