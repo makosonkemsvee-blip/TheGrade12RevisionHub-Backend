@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 public class DigitalizedQuestionPaper {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long PaperId;
-    private String PaperTitle;
+    private Long paperId;
+    private String paperTitle;
     private String subject;
     private Integer score;
     private Integer year;

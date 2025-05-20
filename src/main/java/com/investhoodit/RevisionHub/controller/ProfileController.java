@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/profile")
+@RequestMapping("/api/user/profile")
 public class ProfileController {
 
     private final ProfileManagementService profileManagementService;

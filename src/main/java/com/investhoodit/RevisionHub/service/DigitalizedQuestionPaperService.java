@@ -10,25 +10,26 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class DigitalizedQuestionPaperService {
-    private final DigitalizedQuestionPaperRepository digitalizedQuestionPaperRepository;
+    private final DigitalizedQuestionPaperRepository dqpRepository;
     private final UserRepository userRepository;
 
     public DigitalizedQuestionPaperService(DigitalizedQuestionPaperRepository digitalizedQuestionPaperRepository, UserRepository userRepository) {
-        this.digitalizedQuestionPaperRepository = digitalizedQuestionPaperRepository;
+        this.dqpRepository = digitalizedQuestionPaperRepository;
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<ApiResponse> save(DigitalizedQPRequest digitalizedQPRequest) {
+    public ResponseEntity<ApiResponse> submitDigitalizedQuestionPaper(DigitalizedQPRequest digitalizedQPRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Optional<DigitalizedQuestionPaper> existingSubmissionOpt = digitalizedQuestionPaperRepository.findBySubmitterAndPaperTitle(user,digitalizedQPRequest.getPaperTitle());
+        Optional<DigitalizedQuestionPaper> existingSubmissionOpt = dqpRepository.findBySubmitterAndPaperTitle(user,digitalizedQPRequest.getPaperTitle());
 
         DigitalizedQuestionPaper dqp;
 
@@ -46,9 +47,42 @@ public class DigitalizedQuestionPaperService {
             dqp.setSubmitter(user);
         }
 
-        digitalizedQuestionPaperRepository.save(dqp);
+        dqpRepository.save(dqp);
 
         return ResponseEntity.status(201)
                 .body(new ApiResponse("Submitted successfully",true,dqp));
+    }
+
+    public ResponseEntity<ApiResponse> getAverageScorePerSubject(DigitalizedQPRequest digitalizedQPRequest) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<DigitalizedQuestionPaper> allDqp = dqpRepository.findAll();
+        String subject = "";
+        for (DigitalizedQuestionPaper dqp : allDqp) {
+            if(dqp.getSubject().equals(digitalizedQPRequest.getSubject())){
+                subject = dqp.getSubject();
+            }
+        }
+
+        if(subject.isEmpty()){
+            throw new RuntimeException("Subject not found");
+        }
+
+        List<DigitalizedQuestionPaper> dqpList = dqpRepository.findAllBySubjectAndSubmitter(digitalizedQPRequest.getSubject(),user);
+        double averageScore;
+        int totalScore = 0;
+
+        if (!dqpList.isEmpty()) {
+            for(DigitalizedQuestionPaper dqp : dqpList ){
+                totalScore += dqp.getScore();
+            }
+            averageScore = (double) totalScore / dqpList.size();
+        }else {
+            throw new RuntimeException("You have not submitted a question paper yet");
+        }
+
+        return ResponseEntity.status(200).body(new ApiResponse("Average successfully retrieved",true,averageScore));
     }
 }
