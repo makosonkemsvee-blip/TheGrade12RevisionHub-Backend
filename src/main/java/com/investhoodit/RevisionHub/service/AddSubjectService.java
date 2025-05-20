@@ -91,4 +91,12 @@ public class AddSubjectService {
 	public List<UserSubjects> getAllStudentSubjects(User user) {
 		return userSubjectsRepository.findByUser(user);
 	}
+	
+	public List<String> allSubjects(){
+		List<String> subjectNames = new ArrayList<>();
+		for (Subject subject : subjectRepository.findAll()){
+			subjectNames.add(subject.getSubjectName());
+		}
+		return subjectNames;
+	}
 }
