@@ -29,12 +29,9 @@ public class QuestionPaperService {
     }
 
     public void savePdfFilesFromFolder() throws IOException {
-
         File folder = new File(pdfFolderPath);
         File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-
         List<QuestionPaper> questionPapers = new ArrayList<>();
-        List<Subject> subjects = subjectRepository.findAll();
 
         if (files != null) {
             for (File file : files) {
@@ -42,46 +39,33 @@ public class QuestionPaperService {
                 try (FileInputStream fis = new FileInputStream(file)) {
                     fis.read(fileData);
                 }
-                        QuestionPaper pdfFile = new QuestionPaper();
-                        pdfFile.setFileName(file.getName());
-                        pdfFile.setFileData(fileData);
-
-                        for (Subject subject : subjects) {
-                            if (subs(pdfFile.getFileName()).equalsIgnoreCase(subject.getSubjectName())) {
-                                pdfFile.setSubject(subject);
-                            }
-                        }
-
-                        questionPapers.add(pdfFile);
-                    }
+                QuestionPaper pdfFile = new QuestionPaper();
+                pdfFile.setFileName(file.getName());
+                pdfFile.setFileData(fileData);
+                questionPapers.add(pdfFile);
             }
-
-            if (allQuestionPapers().isEmpty()) {
-                questionPaperRepository.saveAll(questionPapers);
-            }
-
-    }
-
-    private String subs(String word) {
-        int spaceIndex = word.indexOf(" ");
-        if (spaceIndex == -1) { // No space found
-            return word; // Return the entire word
         }
-        return word.substring(0, spaceIndex);
+        for (QuestionPaper questionPaper : questionPapers) {
+            for (Subject subject: subjectRepository.findAll()) {
+                String subjectName = subject.getSubjectName();
+                if (questionPaper.getFileName().toLowerCase().contains(subjectName.toLowerCase())) {
+                    questionPaper.setSubject(subject);
+                }
+            }
+        }
+
+        if (allQuestionPapers().isEmpty()) {
+            questionPaperRepository.saveAll(questionPapers);
+        }
     }
 
     public List<QuestionPaper> allQuestionPapers() {
         return questionPaperRepository.findAll();
     }
 
-    public void deletePaper(Long id) {
-        questionPaperRepository.deleteById(id);
-    }
-
     public QuestionPaper getPaperById(Long id) {
         return questionPaperRepository.findById(id).orElseThrow(() -> new RuntimeException("Paper not found"));
     }
-
 
     public Optional<QuestionPaper> findById(Long id) {
         return questionPaperRepository.findById(id);

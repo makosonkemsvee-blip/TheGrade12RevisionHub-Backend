@@ -3,13 +3,15 @@ package com.investhoodit.RevisionHub.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.investhoodit.RevisionHub.dto.AddSubjectDTO;
+import com.investhoodit.RevisionHub.dto.SubjectDTO;
 import com.investhoodit.RevisionHub.model.Subject;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.model.UserSubjects;
 import com.investhoodit.RevisionHub.repository.SubjectRepository;
 import com.investhoodit.RevisionHub.repository.UserRepository;
 import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -54,9 +56,9 @@ public class AddSubjectService {
 		}
 	}
 
-	public boolean addSubject(AddSubjectDTO dto) {
-
-		User user = userRepository.findByEmail(dto.getEmail())
+	public boolean addSubject(SubjectDTO subjectDTO) {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		if (user == null) {
@@ -64,7 +66,7 @@ public class AddSubjectService {
 		}
 
 		// Check if subject exists in database
-		Subject subject = subjectRepository.findById(dto.getSubjectName())
+		Subject subject = subjectRepository.findBySubjectName(subjectDTO.getSubjectName())
 				.orElseThrow(() -> new RuntimeException("Subject not found."));
 
 		if (subject == null) {

@@ -1,9 +1,7 @@
 package com.investhoodit.RevisionHub.controller;
 
-import com.investhoodit.RevisionHub.dto.AddSubjectDTO;
+import com.investhoodit.RevisionHub.dto.SubjectDTO;
 import com.investhoodit.RevisionHub.model.ApiResponse;
-import com.investhoodit.RevisionHub.model.UserSubjects;
-import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
 import com.investhoodit.RevisionHub.service.AddSubjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,19 +20,19 @@ public class AddSubjectController {
     }
 
     @PostMapping("/add-subject")
-    public ResponseEntity<ApiResponse> addSubject(@RequestBody AddSubjectDTO dto) {
+    public ResponseEntity<ApiResponse> addSubject(@RequestBody SubjectDTO subjectDTO) {
         try{
-            boolean isAdded = addSubjectService.addSubject(dto);
+            boolean isAdded = addSubjectService.addSubject(subjectDTO);
             if (isAdded) {
-                return ResponseEntity.status(201)
-                        .body(new ApiResponse("New subject added successfully.", true, dto));
+                return ResponseEntity.ok()
+                        .body(new ApiResponse("New subject added successfully.", true, subjectDTO.getSubjectName()));
             }else {
                 return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Subject already exists.", false, dto));
+                        .body(new ApiResponse("Subject already exists.", false, subjectDTO.getSubjectName()));
             }
         } catch (Exception e) {
             return ResponseEntity.status(500)
-                    .body(new ApiResponse(e.getMessage(), false, dto));
+                    .body(new ApiResponse(e.getMessage(), false, subjectDTO.getSubjectName()));
         }
 
     }
