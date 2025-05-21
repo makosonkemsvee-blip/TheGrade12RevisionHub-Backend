@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface UserSubjectsRepository extends JpaRepository<UserSubjects, Long> {
     List<UserSubjects> findByUser(User user);
     boolean existsByUserAndSubject(User user, Subject subject);
+    boolean deleteByUserAndSubject(User user, Subject subject);
 
     int countByUser(User user);
 

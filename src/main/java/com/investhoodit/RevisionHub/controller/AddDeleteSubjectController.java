@@ -2,20 +2,23 @@ package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.dto.SubjectDTO;
 import com.investhoodit.RevisionHub.model.ApiResponse;
-import com.investhoodit.RevisionHub.model.Subject;
-import com.investhoodit.RevisionHub.service.AddSubjectService;
+
+import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.service.AddDeleteSubjectService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/user")
-public class AddSubjectController {
+public class AddDeleteSubjectController {
 
-    private final AddSubjectService addSubjectService;
+    private final AddDeleteSubjectService addSubjectService;
 
-    public AddSubjectController(AddSubjectService addSubjectService) {
+    public AddDeleteSubjectController(AddDeleteSubjectService addSubjectService) {
         this.addSubjectService = addSubjectService;
     }
 
@@ -50,6 +53,30 @@ public class AddSubjectController {
         }catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse(e.getMessage(), false, null));
+        }
+    }
+
+    @GetMapping("/enrolled-subjects")
+    public ResponseEntity<ApiResponse> userSubject() {
+        try{
+            return ResponseEntity.ok(new ApiResponse("Your subjects", true, addSubjectService.getAllStudentSubjects()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse(e.getMessage(), false, null));
+        }
+    }
+
+    @DeleteMapping("/remove-subject")
+    public ResponseEntity<ApiResponse> removeUserSubject(@RequestParam String subjectName) {
+        try {
+            boolean removed = addSubjectService.removeSubject(subjectName);
+            if (removed) {
+                return ResponseEntity.ok(new ApiResponse("Subject removed successfully", true, null));
+            } else {
+                return ResponseEntity.ok(new ApiResponse("Subject not found", false, null));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ApiResponse(e.getMessage(), false, null));
         }
     }
 }

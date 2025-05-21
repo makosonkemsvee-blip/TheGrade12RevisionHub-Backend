@@ -15,13 +15,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AddSubjectService {
+public class AddDeleteSubjectService {
 
 	private final SubjectRepository subjectRepository;
 	private final UserSubjectsRepository userSubjectsRepository;
 	private final UserRepository userRepository;
 
-    public AddSubjectService(SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
+    public AddDeleteSubjectService(SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
         this.subjectRepository = subjectRepository;
         this.userSubjectsRepository = userSubjectsRepository;
         this.userRepository = userRepository;
@@ -86,10 +86,31 @@ public class AddSubjectService {
 			userSubjects.setCreatedAt(new Date());
 		    userSubjectsRepository.save(userSubjects);
 			return true;
+	}
+
+	public List<String> getAllStudentSubjects() {
+		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+		List<UserSubjects> allSubjects = userSubjectsRepository.findByUser(user);
+		List<String> userSubjects = new ArrayList<>();
+		for (UserSubjects uSubjects : allSubjects) {
+			userSubjects.add(uSubjects.getSubject().getSubjectName());
 		}
 
-	public List<UserSubjects> getAllStudentSubjects(User user) {
-		return userSubjectsRepository.findByUser(user);
+		return userSubjects;
+	}
+
+	public boolean removeSubject(String subjectName) {
+		User user = userRepository.findByEmail(
+				SecurityContextHolder
+						.getContext()
+						.getAuthentication()
+						.getName()
+		).orElseThrow(() -> new RuntimeException("User not found"));
+		return userSubjectsRepository.deleteByUserAndSubject(user,subjectRepository
+				.findBySubjectName(subjectName)
+				.orElseThrow(() -> new RuntimeException("Subject not found")));
 	}
 	
 	public List<String> allSubjects(){
@@ -99,4 +120,5 @@ public class AddSubjectService {
 		}
 		return subjectNames;
 	}
+
 }
