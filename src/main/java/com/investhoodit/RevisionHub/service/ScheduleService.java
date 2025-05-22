@@ -90,7 +90,6 @@ public class ScheduleService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Assuming ScheduleRequest includes scheduleId
         Schedule schedule = scheduleRepository.findByIdAndUser(scheduleRequest.getScheduleId(), user)
                 .orElseThrow(() -> new RuntimeException("Schedule not found"));
 
