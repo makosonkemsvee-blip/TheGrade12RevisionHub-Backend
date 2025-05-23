@@ -3,12 +3,11 @@ package com.investhoodit.RevisionHub.controller;
 import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.model.QuestionPaper;
 import com.investhoodit.RevisionHub.service.QuestionPaperService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,19 +22,49 @@ public class FindQuestionPaperController {
     }
 
     @GetMapping("/question-papers")
-    public ResponseEntity<ApiResponse> findQuestionPaperBySubject() {
-//        if (subjectName == null || subjectName.trim().isEmpty()) {
-//            return ResponseEntity.badRequest()
-//                    .body(new ApiResponse("Question papers name cannot be empty", false, null));
-//        }
+    public ResponseEntity<ApiResponse> findQuestionPaperBySubject(@RequestParam String subjectName) {
         try {
-            List<QuestionPaper> papers = questionPaperService.findBySubjectName();
+            List<QuestionPaper> papers = questionPaperService.findBySubjectName(subjectName);
                 return ResponseEntity.ok(new ApiResponse("Question papers retrieved successfully", true, papers));
 
         } catch (Exception e) {
             //log.error("Error removing subject: {}", subjectName, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse("An error occurred while retrieving the question papers: " + e.getMessage(), false, null));
+        }
+    }
+
+    @GetMapping("/question-papers/{id}/view")
+    public ResponseEntity<byte[]> viewQuestionPaper(@PathVariable Long id) {
+        try {
+            QuestionPaper paper = questionPaperService.findById(id);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("inline", paper.getFileName());
+            return new ResponseEntity<>(paper.getFileData(), headers, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/question-papers/{id}/download")
+    public ResponseEntity<byte[]> downloadQuestionPaper(@PathVariable Long id) {
+        try {
+            QuestionPaper paper = questionPaperService.findById(id);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", paper.getFileName());
+            return new ResponseEntity<>(paper.getFileData(), headers, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 }

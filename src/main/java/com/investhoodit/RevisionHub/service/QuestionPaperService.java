@@ -84,18 +84,25 @@ public class QuestionPaperService {
         return (int) questionPaperRepository.count();
     }
 
-    public List<QuestionPaper> findBySubjectName() {
+    public List<QuestionPaper> findBySubjectName(String subjectName) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        List<UserSubjects> subjects = userSubjectsRepository.findByUser(user);
-        List<QuestionPaper> questionPapers = new ArrayList<>();
-        List<QuestionPaper> questionPaperList = questionPaperRepository.findAll();
+//        List<UserSubjects> subjects = userSubjectsRepository.findByUser(user);
+//        List<QuestionPaper> questionPapers = new ArrayList<>();
+//        List<QuestionPaper> questionPaperList = questionPaperRepository.findAll();
 
-        for (UserSubjects subject: subjects){
-            questionPapers.addAll(questionPaperRepository.findBySubject(subject.getSubject()));
-        }
+//        for (UserSubjects subject: subjects){
+//            questionPapers.addAll(questionPaperRepository.findBySubject(subject.getSubject()));
+//        }
 
-        return questionPapers;
+        Subject subject = subjectRepository.findBySubjectName(subjectName)
+                .orElseThrow(() -> new RuntimeException("Subject not found"));
+
+        return questionPaperRepository.findBySubject(subject);
+    }
+
+    public QuestionPaper findById(Long id) {
+        return questionPaperRepository.findById(id).orElseThrow(() -> new RuntimeException("Question paper not found"));
     }
 }
