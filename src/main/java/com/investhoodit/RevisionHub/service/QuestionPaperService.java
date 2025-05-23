@@ -2,9 +2,14 @@ package com.investhoodit.RevisionHub.service;
 
 import com.investhoodit.RevisionHub.model.QuestionPaper;
 import com.investhoodit.RevisionHub.model.Subject;
+import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.model.UserSubjects;
 import com.investhoodit.RevisionHub.repository.QuestionPaperRepository;
 import com.investhoodit.RevisionHub.repository.SubjectRepository;
+import com.investhoodit.RevisionHub.repository.UserRepository;
+import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,10 +27,14 @@ public class QuestionPaperService {
 
     private final QuestionPaperRepository questionPaperRepository;
     private final SubjectRepository subjectRepository;
+    private final UserSubjectsRepository userSubjectsRepository;
+    private final UserRepository userRepository;
 
-    public QuestionPaperService(QuestionPaperRepository questionPaperRepository, SubjectRepository subjectRepository) {
+    public QuestionPaperService(QuestionPaperRepository questionPaperRepository, SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
         this.questionPaperRepository = questionPaperRepository;
         this.subjectRepository = subjectRepository;
+        this.userSubjectsRepository = userSubjectsRepository;
+        this.userRepository = userRepository;
     }
 
     public void savePdfFilesFromFolder() throws IOException {
@@ -67,10 +76,6 @@ public class QuestionPaperService {
         return questionPaperRepository.findById(id).orElseThrow(() -> new RuntimeException("Paper not found"));
     }
 
-    public Optional<QuestionPaper> findById(Long id) {
-        return questionPaperRepository.findById(id);
-    }
-
     public void uploadQuestionPaper(QuestionPaper questionPaper){
         questionPaperRepository.save(questionPaper);
     }
@@ -79,8 +84,18 @@ public class QuestionPaperService {
         return (int) questionPaperRepository.count();
     }
 
-    public List<QuestionPaper> findBySubjectName(String subjectName) {
-        return questionPaperRepository.findBySubject(subjectRepository.findBySubjectName(subjectName)
-                .orElseThrow(() -> new RuntimeException("Subject not found")));
+    public List<QuestionPaper> findBySubjectName() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<UserSubjects> subjects = userSubjectsRepository.findByUser(user);
+        List<QuestionPaper> questionPapers = new ArrayList<>();
+        List<QuestionPaper> questionPaperList = questionPaperRepository.findAll();
+
+        for (UserSubjects subject: subjects){
+            questionPapers.addAll(questionPaperRepository.findBySubject(subject.getSubject()));
+        }
+
+        return questionPapers;
     }
 }

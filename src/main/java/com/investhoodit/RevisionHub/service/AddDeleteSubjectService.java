@@ -13,6 +13,7 @@ import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AddDeleteSubjectService {
@@ -89,28 +90,29 @@ public class AddDeleteSubjectService {
 	}
 
 	public List<String> getAllStudentSubjects() {
-		String email = SecurityContextHolder.getContext().getAuthentication().getName();
-		User user = userRepository.findByEmail(email)
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByEmail(username)
 				.orElseThrow(() -> new RuntimeException("User not found"));
-		List<UserSubjects> allSubjects = userSubjectsRepository.findByUser(user);
-		List<String> userSubjects = new ArrayList<>();
-		for (UserSubjects uSubjects : allSubjects) {
-			userSubjects.add(uSubjects.getSubject().getSubjectName());
-		}
-
-		return userSubjects;
+		return userSubjectsRepository.findByUser(user)
+				.stream()
+				.map(userSubject -> userSubject.getSubject().getSubjectName())
+				.collect(Collectors.toList());
 	}
 
+	@Transactional
 	public boolean removeSubject(String subjectName) {
-		User user = userRepository.findByEmail(
-				SecurityContextHolder
-						.getContext()
-						.getAuthentication()
-						.getName()
-		).orElseThrow(() -> new RuntimeException("User not found"));
-		return userSubjectsRepository.deleteByUserAndSubject(user,subjectRepository
-				.findBySubjectName(subjectName)
-				.orElseThrow(() -> new RuntimeException("Subject not found")));
+		// Get the authenticated user
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByEmail(username)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		// Find the subject by name
+		Subject subject = subjectRepository.findBySubjectName(subjectName)
+				.orElseThrow(() -> new RuntimeException("Subject not found"));
+
+		// Delete the UserSubjects record
+		userSubjectsRepository.deleteByUserAndSubject(user, subject);
+		return true;
 	}
 	
 	public List<String> allSubjects(){

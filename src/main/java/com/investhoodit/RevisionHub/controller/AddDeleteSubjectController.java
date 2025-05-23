@@ -3,11 +3,10 @@ package com.investhoodit.RevisionHub.controller;
 import com.investhoodit.RevisionHub.dto.SubjectDTO;
 import com.investhoodit.RevisionHub.model.ApiResponse;
 
-import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.AddDeleteSubjectService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,26 +56,38 @@ public class AddDeleteSubjectController {
     }
 
     @GetMapping("/enrolled-subjects")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse> userSubject() {
-        try{
-            return ResponseEntity.ok(new ApiResponse("Your subjects", true, addSubjectService.getAllStudentSubjects()));
+        try {
+         //   log.info("Fetching enrolled subjects for user");
+            List<String> subjects = addSubjectService.getAllStudentSubjects();
+            return ResponseEntity.ok(new ApiResponse("Your subjects", true, subjects));
         } catch (Exception e) {
+         //   log.error("Error fetching enrolled subjects", e);
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse(e.getMessage(), false, null));
+                    .body(new ApiResponse("Failed to fetch subjects: " + e.getMessage(), false, null));
         }
     }
 
     @DeleteMapping("/remove-subject")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse> removeUserSubject(@RequestParam String subjectName) {
+        if (subjectName == null || subjectName.trim().isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse("Subject name cannot be empty", false, null));
+        }
         try {
             boolean removed = addSubjectService.removeSubject(subjectName);
             if (removed) {
                 return ResponseEntity.ok(new ApiResponse("Subject removed successfully", true, null));
             } else {
-                return ResponseEntity.ok(new ApiResponse("Subject not found", false, null));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ApiResponse("Subject not found or not enrolled", false, null));
             }
         } catch (Exception e) {
-            return ResponseEntity.ok(new ApiResponse(e.getMessage(), false, null));
+            //log.error("Error removing subject: {}", subjectName, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse("An error occurred while removing the subject: " + e.getMessage(), false, null));
         }
     }
 }

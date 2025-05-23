@@ -11,16 +11,6 @@ import java.util.Optional;
 public interface UserSubjectsRepository extends JpaRepository<UserSubjects, Long> {
     List<UserSubjects> findByUser(User user);
     boolean existsByUserAndSubject(User user, Subject subject);
-    boolean deleteByUserAndSubject(User user, Subject subject);
-
-    int countByUser(User user);
-
-    List<UserSubjects> findBySubjectAndUser(Subject subject, User user);
-
-    List<UserSubjects> findBySubject(Subject subject);
-
-    UserSubjects findTopByUserOrderByCreatedAtDesc(User user);
-
-    Optional<UserSubjects> findFirstBySubject(Subject subject);
+    void deleteByUserAndSubject(User user, Subject subject);
 
 }
