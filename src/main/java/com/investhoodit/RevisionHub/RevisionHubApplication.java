@@ -8,6 +8,7 @@ public class RevisionHubApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(RevisionHubApplication.class, args);
+		System.out.println("RevisionHub Application started");
 	}
 
 }
