@@ -78,4 +78,13 @@ public class ProfileManagementService {
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(image);
     }
+
+    public ResponseEntity<ApiResponse> getUserDetails() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok()
+                .body(new ApiResponse("User profile retrieved successfully", true, user));
+    }
 }

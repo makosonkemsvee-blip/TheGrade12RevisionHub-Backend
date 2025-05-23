@@ -38,4 +38,9 @@ public class ProfileController {
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long userId) {
         return profileManagementService.getProfilePicture(userId);
     }
+
+    @GetMapping("/get-user-details")
+    public ResponseEntity<ApiResponse> getUserDetails() {
+        return profileManagementService.getUserDetails();
+    }
 }
