@@ -2,6 +2,7 @@ package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.dto.DigitalizedQPRequest;
 import com.investhoodit.RevisionHub.model.ApiResponse;
+import com.investhoodit.RevisionHub.model.DigitalizedQuestionPaper;
 import com.investhoodit.RevisionHub.service.DigitalizedQuestionPaperService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +17,12 @@ public class DigitalizedQPController {
     }
 
     @PostMapping("/submit")
-    public ResponseEntity<ApiResponse> submitDigitalizedQP(@RequestBody DigitalizedQPRequest digitalizedQPRequest) {
+    public ResponseEntity<ApiResponse<DigitalizedQuestionPaper>> submitDigitalizedQP(@RequestBody DigitalizedQPRequest digitalizedQPRequest) {
         return dqpService.submitDigitalizedQuestionPaper(digitalizedQPRequest);
     }
 
     @GetMapping("/getAvgScore")
-    public ResponseEntity<ApiResponse> getAverageScorePerSubject(@RequestBody DigitalizedQPRequest digitalizedQPRequest) {
+    public ResponseEntity<ApiResponse<Double>> getAverageScorePerSubject(@RequestBody DigitalizedQPRequest digitalizedQPRequest) {
         return dqpService.getAverageScorePerSubject(digitalizedQPRequest);
     }
 

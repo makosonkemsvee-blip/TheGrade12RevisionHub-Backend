@@ -23,7 +23,7 @@ public class DigitalizedQuestionPaperService {
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<ApiResponse> submitDigitalizedQuestionPaper(DigitalizedQPRequest digitalizedQPRequest) {
+    public ResponseEntity<ApiResponse<DigitalizedQuestionPaper>> submitDigitalizedQuestionPaper(DigitalizedQPRequest digitalizedQPRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
@@ -49,11 +49,17 @@ public class DigitalizedQuestionPaperService {
 
         dqpRepository.save(dqp);
 
+        ApiResponse<DigitalizedQuestionPaper> response = new ApiResponse<>(
+                true,
+                "Submitted successfully",
+                dqp
+        );
+
         return ResponseEntity.status(201)
-                .body(new ApiResponse("Submitted successfully",true,dqp));
+                .body(response);
     }
 
-    public ResponseEntity<ApiResponse> getAverageScorePerSubject(DigitalizedQPRequest digitalizedQPRequest) {
+    public ResponseEntity<ApiResponse<Double>> getAverageScorePerSubject(DigitalizedQPRequest digitalizedQPRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -83,6 +89,11 @@ public class DigitalizedQuestionPaperService {
             throw new RuntimeException("You have not submitted a question paper yet");
         }
 
-        return ResponseEntity.status(200).body(new ApiResponse("Average successfully retrieved",true,averageScore));
+        ApiResponse<Double> response = new ApiResponse<>(
+                true,
+                "Average successfully retrieved",
+                averageScore
+        );
+        return ResponseEntity.status(200).body(response);
     }
 }

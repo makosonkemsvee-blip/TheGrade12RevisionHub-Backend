@@ -23,19 +23,29 @@ public class FindQuestionPaperController {
     }
 
     @GetMapping("/question-papers")
-    public ResponseEntity<ApiResponse> findQuestionPaperBySubject() {
+    public ResponseEntity<ApiResponse<List<QuestionPaper>>> findQuestionPaperBySubject() {
 //        if (subjectName == null || subjectName.trim().isEmpty()) {
 //            return ResponseEntity.badRequest()
 //                    .body(new ApiResponse("Question papers name cannot be empty", false, null));
 //        }
         try {
             List<QuestionPaper> papers = questionPaperService.findBySubjectName();
-                return ResponseEntity.ok(new ApiResponse("Question papers retrieved successfully", true, papers));
+            ApiResponse<List<QuestionPaper>> response = new ApiResponse<>(
+                    true,
+                    "Question papers retrieved successfully",
+                    papers
+            );
+                return ResponseEntity.ok().body(response);
 
         } catch (Exception e) {
             //log.error("Error removing subject: {}", subjectName, e);
+            ApiResponse<List<QuestionPaper>> response = new ApiResponse<>(
+                    false,
+                    "An error occurred while retrieving the question papers: " + e.getMessage(),
+                    null
+            );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse("An error occurred while retrieving the question papers: " + e.getMessage(), false, null));
+                    .body(response);
         }
     }
 }
