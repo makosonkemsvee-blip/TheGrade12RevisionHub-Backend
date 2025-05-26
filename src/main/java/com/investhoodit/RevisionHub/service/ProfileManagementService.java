@@ -1,6 +1,7 @@
 package com.investhoodit.RevisionHub.service;
 
 import com.investhoodit.RevisionHub.dto.ProfileUpdateRequest;
+import com.investhoodit.RevisionHub.dto.UserResponse;
 import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Base64;
 
 @Service
 public class ProfileManagementService {
@@ -21,15 +23,21 @@ public class ProfileManagementService {
         this.userRepository = userRepository;
     }
 
-    public ResponseEntity<ApiResponse> updateProfile(ProfileUpdateRequest profileRequest) {
+    public ResponseEntity<ApiResponse<User>> updateProfile(ProfileUpdateRequest profileRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (profileRequest == null || (profileRequest.getFirstName() == null && profileRequest.getLastName() == null && profileRequest.getPhoneNumber() == null)) {
+            ApiResponse<User> response = new ApiResponse<>(
+                    false,
+                    "At least one field (firstName, lastName, phoneNumber) must be provided",
+                    null
+            );
+
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("At least one field (firstName, lastName, phoneNumber) must be provided", false, null));
+                    .body(response);
         }
 
         if (profileRequest.getFirstName() != null) {
@@ -44,19 +52,28 @@ public class ProfileManagementService {
 
         userRepository.save(user);
 
-        return ResponseEntity.status(200)
-                .body(new ApiResponse("Profile updated successfully", true, user));
+        ApiResponse<User> response = new ApiResponse<>(
+                true,
+                "Profile updated successfully",
+                user
+        );
+
+        return ResponseEntity.status(200).body(response);
     }
 
-    public ResponseEntity<ApiResponse> updateProfilePicture(MultipartFile profilePicture) throws IOException {
+    public ResponseEntity<ApiResponse<User>> updateProfilePicture(MultipartFile profilePicture) throws IOException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (profilePicture == null || profilePicture.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Profile picture file is required", false, null));
+            ApiResponse<User> response = new ApiResponse<>(
+                    false,
+                    "Profile picture file is required",
+                    null
+            );
+            return ResponseEntity.badRequest().body(response);
         }
 
         byte[] profilePictureBytes = profilePicture.getBytes();
@@ -64,8 +81,13 @@ public class ProfileManagementService {
 
         userRepository.save(user);
 
-        return ResponseEntity.status(200)
-                .body(new ApiResponse("Profile picture updated successfully", true, user));
+        ApiResponse<User> response = new ApiResponse<>(
+                true,
+                "Profile picture updated successfully",
+                user
+        );
+
+        return ResponseEntity.status(200).body(response);
     }
 
     public ResponseEntity<byte[]> getProfilePicture(Long userId) {
@@ -79,12 +101,35 @@ public class ProfileManagementService {
                 .body(image);
     }
 
-    public ResponseEntity<ApiResponse> getUserDetails() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<ApiResponse<UserResponse>> getUserDetails() {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.ok()
-                .body(new ApiResponse("User profile retrieved successfully", true, user));
+            UserResponse userResponse = new UserResponse();
+            userResponse.setFirstName(user.getFirstName());
+            userResponse.setLastName(user.getLastName());
+            userResponse.setEmail(user.getEmail());
+            userResponse.setPhoneNumber(user.getPhoneNumber()); // Hardcoded or from user role
+            if (user.getProfilePicture() != null) {
+                String base64Image = Base64.getEncoder().encodeToString(user.getProfilePicture());
+                userResponse.setProfilePicture("data:image/jpeg;base64," + base64Image);
+            }
+
+            ApiResponse<UserResponse> response = new ApiResponse<>(
+                    true,
+                    "User details retrieved successfully",
+                    userResponse
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<UserResponse> response = new ApiResponse<>(
+                    false,
+                    "Failed to retrieve user details: " + e.getMessage(),
+                    null
+            );
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }
