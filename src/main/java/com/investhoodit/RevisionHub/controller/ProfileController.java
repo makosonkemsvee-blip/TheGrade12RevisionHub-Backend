@@ -1,7 +1,9 @@
 package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.dto.ProfileUpdateRequest;
+import com.investhoodit.RevisionHub.dto.UserResponse;
 import com.investhoodit.RevisionHub.model.ApiResponse;
+import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.ProfileManagementService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +25,13 @@ public class ProfileController {
     }
 
     @PutMapping(path = "/update-profile", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ApiResponse> updateProfile(
+    public ResponseEntity<ApiResponse<User>> updateProfile(
             @Valid @RequestBody ProfileUpdateRequest profileRequest) {
         return profileManagementService.updateProfile(profileRequest);
     }
 
     @PutMapping(path = "/update-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse> updateProfilePicture(
+    public ResponseEntity<ApiResponse<User>> updateProfilePicture(
             @RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture) throws IOException {
         return profileManagementService.updateProfilePicture(profilePicture);
     }
@@ -37,5 +39,10 @@ public class ProfileController {
     @GetMapping("/picture/{userId}")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long userId) {
         return profileManagementService.getProfilePicture(userId);
+    }
+
+    @GetMapping("/getUserDetails")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserDetails(){
+        return profileManagementService.getUserDetails();
     }
 }
