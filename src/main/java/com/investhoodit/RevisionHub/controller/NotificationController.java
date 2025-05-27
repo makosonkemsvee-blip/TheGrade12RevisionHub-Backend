@@ -1,6 +1,7 @@
 package com.investhoodit.RevisionHub.controller;
 import com.investhoodit.RevisionHub.model.Notification;
 import com.investhoodit.RevisionHub.service.NotificationService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -28,12 +29,26 @@ public class NotificationController {
         return service.getUnreadNotifications(userId);
     }
 
+
+
+    @PatchMapping("/read-all/{userId}")
+    public ResponseEntity<Void> markAllAsRead(@PathVariable String userId) {
+        // Implement logic to mark all as read for userId
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteAllNotifications(@PathVariable String userId) {
+        // Implement logic to delete all for userId
+        return ResponseEntity.ok().build();
+    }
+
     //temporary
-    @PostMapping("/test-birthdays")
+   /* @PostMapping("/test-birthdays")
     public String testBirthdayNotifications() {
         service.sendBirthdayNotifications();
         return "Birthday notifications triggered";
-    }
+    }*/
 }
 
 // DTO for request
