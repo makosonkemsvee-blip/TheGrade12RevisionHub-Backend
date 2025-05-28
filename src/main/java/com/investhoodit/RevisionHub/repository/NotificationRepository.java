@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByUserIdAndIsReadFalse(String userId);
+    List<Notification> findByUserId(String userId);
+    void deleteByUserId(String userId);
 }

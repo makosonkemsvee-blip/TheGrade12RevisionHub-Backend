@@ -8,10 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class NotificationService {
@@ -39,11 +42,66 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/topic/notifications/" + userId, savedNotification);
         return savedNotification;
     }
-
     public List<Notification> getUnreadNotifications(String userId) {
         logger.info("Fetching unread notifications for userId: {}", userId);
         return repository.findByUserIdAndIsReadFalse(userId);
     }
+
+    /*mark notification*/
+    public void markNotificationAsRead(Long notificationId) {
+        logger.info("Marking notification with id: {} as read", notificationId);
+        Notification notification = repository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+        notification.setIsRead(true);
+        repository.save(notification);
+        logger.info("Notification {} marked as read", notificationId);
+        messagingTemplate.convertAndSend("/topic/notifications/" + notification.getUserId(), notification);
+    }
+
+    /*mark all notification*/
+    public void markAllNotificationsAsRead(String userId) {
+        logger.info("Marking all notifications as read for userId: {}", userId);
+        List<Notification> notifications = repository.findByUserIdAndIsReadFalse(userId);
+        for (Notification notification : notifications) {
+            notification.setIsRead(true);
+            repository.save(notification);
+            messagingTemplate.convertAndSend("/topic/notifications/" + userId, notification);
+        }
+        logger.info("Marked {} notifications as read for userId: {}", notifications.size(), userId);
+    }
+
+    @Transactional
+    public void deleteNotification(Long notificationId) {
+        logger.info("Deleting notification with id: {}", notificationId);
+        Notification notification = repository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+        repository.delete(notification);
+        logger.info("Deleted notification with id: {}", notificationId);
+        try {
+            Map<String, String> message = new HashMap<>();
+            message.put("message", "Notification deleted");
+            message.put("type", "INFO");
+            messagingTemplate.convertAndSend("/topic/notifications/" + notification.getUserId(), message);
+        } catch (Exception e) {
+            logger.error("Failed to send WebSocket message for userId: {}", notification.getUserId(), e);
+        }
+    }
+
+    @Transactional
+    public void deleteAllNotificationsForUser(String userId) {
+        logger.info("Deleting all notifications for userId: {}", userId);
+        repository.deleteByUserId(userId);
+        logger.info("Deleted all notifications for userId: {}", userId);
+        try {
+            Map<String, String> message = new HashMap<>();
+            message.put("message", "All notifications cleared");
+            message.put("type", "INFO");
+            messagingTemplate.convertAndSend("/topic/notifications/" + userId, message);
+        } catch (Exception e) {
+            logger.error("Failed to send WebSocket message for userId: {}", userId, e);
+        }
+    }
+
 
     public void sendBirthdayNotifications() {
         LocalDate today = LocalDate.now();
