@@ -42,9 +42,14 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/topic/notifications/" + userId, savedNotification);
         return savedNotification;
     }
+
     public List<Notification> getUnreadNotifications(String userId) {
         logger.info("Fetching unread notifications for userId: {}", userId);
         return repository.findByUserIdAndIsReadFalse(userId);
+    }
+
+    public List<Notification> getAllNotifications(String userId) {
+        return repository.findByUserId(userId);
     }
 
     /*mark notification*/
@@ -61,7 +66,7 @@ public class NotificationService {
     /*mark all notification*/
     public void markAllNotificationsAsRead(String userId) {
         logger.info("Marking all notifications as read for userId: {}", userId);
-        List<Notification> notifications = repository.findByUserIdAndIsReadFalse(userId);
+        List<Notification> notifications = repository.findByUserId(userId);
         for (Notification notification : notifications) {
             notification.setIsRead(true);
             repository.save(notification);
@@ -126,4 +131,6 @@ public class NotificationService {
             }
         }
     }
+
+
 }

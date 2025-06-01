@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.constraints.NotBlank; // Updated import
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
@@ -23,9 +23,8 @@ public class NotificationController {
         this.service = service;
     }
 
-    // DTO for request
     public record NotificationRequest(
-            @NotBlank String userId,
+            @NotBlank String userId, // Should match email or userId from User model
             @NotBlank String message,
             @NotBlank String type
     ) {}
@@ -34,8 +33,7 @@ public class NotificationController {
     public ResponseEntity<Notification> createNotification(@Validated @RequestBody NotificationRequest request) {
         logger.info("Received request to create notification for userId: {}", request.userId());
         try {
-            Notification notification = service.createNotification(
-                    request.userId(), request.message(), request.type());
+            Notification notification = service.createNotification(request.userId(), request.message(), request.type());
             return new ResponseEntity<>(notification, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             logger.error("Failed to create notification: {}", e.getMessage());
@@ -43,6 +41,34 @@ public class NotificationController {
         }
     }
 
+
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<Notification>> getNotifications(@PathVariable String userId) {
+        logger.info("Fetching all notifications for userId: {}", userId);
+        try {
+            List<Notification> notifications = service.getAllNotifications(userId);
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to fetch notifications: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+    /*@GetMapping("/{userId}")
+    public ResponseEntity<List<Notification>> getNotifications(@PathVariable String userId,
+                                                               @RequestParam(defaultValue = "false") boolean includeRead) {
+        logger.info("Fetching notifications for userId: {}, includeRead: {}", userId, includeRead);
+        try {
+            List<Notification> notifications = includeRead
+                    ? service.getAllNotifications(userId) // New service method for all notifications
+                    : service.getUnreadNotifications(userId);
+            return new ResponseEntity<>(notifications, HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            logger.error("Failed to fetch notifications: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }*/
+/*
     @GetMapping("/{userId}")
     public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable String userId) {
         logger.info("Fetching unread notifications for userId: {}", userId);
@@ -53,8 +79,9 @@ public class NotificationController {
             logger.error("Failed to fetch unread notifications: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-    }
+    }*/
 
+    //read one
     @PutMapping("/{notificationId}/read")
     public ResponseEntity<Void> markNotificationAsRead(@PathVariable Long notificationId) {
         logger.info("Marking notification as read: {}", notificationId);
@@ -67,6 +94,7 @@ public class NotificationController {
         }
     }
 
+    //read all
     @PutMapping("/read/all/{userId}")
     public ResponseEntity<Void> markAllNotificationsAsRead(@PathVariable String userId) {
         logger.info("Marking all notifications as read for userId: {}", userId);
@@ -79,6 +107,7 @@ public class NotificationController {
         }
     }
 
+    //Delete one
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<Map<String, String>> deleteNotification(@PathVariable Long notificationId) {
         logger.info("Deleting notification with id: {}", notificationId);
@@ -92,6 +121,7 @@ public class NotificationController {
         }
     }
 
+    //delete all notifications
     @DeleteMapping("/all/{userId}")
     public ResponseEntity<Map<String, String>> deleteAllNotificationsForUser(@PathVariable String userId) {
         logger.info("Deleting all notifications for userId: {}", userId);
