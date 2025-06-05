@@ -12,5 +12,6 @@ public interface UserSubjectsRepository extends JpaRepository<UserSubjects, Long
     List<UserSubjects> findByUser(User user);
     boolean existsByUserAndSubject(User user, Subject subject);
     void deleteByUserAndSubject(User user, Subject subject);
+    Optional<UserSubjects> findByUserAndSubject(User user, Subject subject);
 
 }
