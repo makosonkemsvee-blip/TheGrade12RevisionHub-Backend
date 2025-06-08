@@ -17,6 +17,7 @@ public class Message {
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime createdAt;
+    private Long groupId;
 
     public Message() {
         this.createdAt = LocalDateTime.now();
@@ -35,4 +36,6 @@ public class Message {
     public void setType(String type) { this.type = type; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Long getGroupId() { return groupId; }
+    public void setGroupId(Long groupId) { this.groupId = groupId; }
 }

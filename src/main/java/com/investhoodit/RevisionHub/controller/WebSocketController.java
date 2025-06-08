@@ -4,6 +4,7 @@ import com.investhoodit.RevisionHub.model.Message;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.MessageService;
 import com.investhoodit.RevisionHub.repository.UserRepository;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,9 +33,24 @@ public class WebSocketController {
         }
         User sender = userRepository.findById(message.getSenderId())
                 .orElseThrow(() -> new RuntimeException("Sender not found: " + message.getSenderId()));
-        Message savedMessage = messageService.createMessage(sender.getId(), null, message.getContent(), "GROUP");
+        Message savedMessage = messageService.createMessage(sender.getId(), null, null, message.getContent(), "GROUP");
         messagingTemplate.convertAndSend("/topic/group", savedMessage);
         System.out.println("Sent group message to /topic/group: " + savedMessage.getId());
+    }
+
+    @MessageMapping("/chat/group/{groupId}")
+    @Transactional
+    public void sendGroupMessageToGroup(@Payload Message message, @DestinationVariable Long groupId) {
+        System.out.println("Received group message for group " + groupId + ": " + message.getContent() + ", senderId: " + message.getSenderId());
+        if (message.getSenderId() == null) {
+            System.err.println("Sender ID is null in group message");
+            throw new IllegalArgumentException("Sender ID cannot be null");
+        }
+        User sender = userRepository.findById(message.getSenderId())
+                .orElseThrow(() -> new RuntimeException("Sender not found: " + message.getSenderId()));
+        Message savedMessage = messageService.createMessage(sender.getId(), null, groupId, message.getContent(), "GROUP");
+        messagingTemplate.convertAndSend("/topic/group/" + groupId, savedMessage);
+        System.out.println("Sent group message to /topic/group/" + groupId + ": " + savedMessage.getId());
     }
 
     @MessageMapping("/chat/private")
@@ -49,7 +65,7 @@ public class WebSocketController {
                 .orElseThrow(() -> new RuntimeException("Sender not found: " + message.getSenderId()));
         User recipient = userRepository.findById(message.getRecipientId())
                 .orElseThrow(() -> new RuntimeException("Recipient not found: " + message.getRecipientId()));
-        Message savedMessage = messageService.createMessage(sender.getId(), recipient.getId(), message.getContent(), "PRIVATE");
+        Message savedMessage = messageService.createMessage(sender.getId(), recipient.getId(), null, message.getContent(), "PRIVATE");
         messagingTemplate.convertAndSendToUser(sender.getEmail(), "/queue/message", savedMessage);
         messagingTemplate.convertAndSendToUser(recipient.getEmail(), "/queue/message", savedMessage);
         System.out.println("Sent private message to /queue/message: " + savedMessage.getId());
