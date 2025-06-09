@@ -14,6 +14,10 @@ public class DigitizedQuestionPaper {
     @Column(name = "file_name")
     private String fileName;
 
+    @Lob
+    @Column(name = "file_data")
+    private byte[] fileData;
+
     @ManyToOne
     @JoinColumn(name = "subject_name", referencedColumnName = "subject_name")
     private Subject subject;

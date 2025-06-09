@@ -2,11 +2,15 @@ package com.investhoodit.RevisionHub.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Date;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "user_subjects")
 @Data
