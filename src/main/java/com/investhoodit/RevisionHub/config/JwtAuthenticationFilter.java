@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String validateJwtAndGetEmail(String token) {
-        try {
+         try {
             Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
