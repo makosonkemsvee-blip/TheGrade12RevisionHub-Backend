@@ -43,7 +43,7 @@ public class UserLoginService {
         if (user.isFirstLogin()) {
             //logger.info("First login detected for user ID: {}, sending welcome notification", user.getId());
             String welcomeMessage = "Welcome to the System, we are pleased to have you onboard, " + user.getFirstName() + " " + user.getLastName() + "!";
-            notificationService.createNotification(user.getId().toString(), welcomeMessage, "WELCOME");
+            notificationService.createNotification(user.getId(), welcomeMessage, "WELCOME");
            // logger.info("Welcome notification sent for user ID: {}", user.getId());
 
             user.setFirstLogin(false);

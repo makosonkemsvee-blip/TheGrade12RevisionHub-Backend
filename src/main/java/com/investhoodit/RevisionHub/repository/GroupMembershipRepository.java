@@ -12,6 +12,8 @@ public interface GroupMembershipRepository extends JpaRepository<GroupMembership
     @Query("SELECT gm FROM GroupMembership gm WHERE gm.user.id = :userId")
     List<GroupMembership> findByUserId(@Param("userId") Long userId);
 
+    List<GroupMembership> findByGroupId(Long groupId);
+
     @Modifying
     @Query("DELETE FROM GroupMembership gm WHERE gm.group.id = :groupId")
     void deleteByGroupId(@Param("groupId") Long groupId);

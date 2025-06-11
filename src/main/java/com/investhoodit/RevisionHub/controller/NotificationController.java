@@ -33,7 +33,8 @@ public class NotificationController {
     public ResponseEntity<Notification> createNotification(@Validated @RequestBody NotificationRequest request) {
         logger.info("Received request to create notification for userId: {}", request.userId());
         try {
-            Notification notification = service.createNotification(request.userId(), request.message(), request.type());
+            Long userId = Long.parseLong(request.userId());
+            Notification notification = service.createNotification(userId, request.message(), request.type());
             return new ResponseEntity<>(notification, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             logger.error("Failed to create notification: {}", e.getMessage());
@@ -47,39 +48,14 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getNotifications(@PathVariable String userId) {
         logger.info("Fetching all notifications for userId: {}", userId);
         try {
-            List<Notification> notifications = service.getAllNotifications(userId);
+            Long userIdLong = Long.parseLong(userId);
+            List<Notification> notifications = service.getAllNotifications(userIdLong);
             return new ResponseEntity<>(notifications, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             logger.error("Failed to fetch notifications: {}", e.getMessage());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }
-    /*@GetMapping("/{userId}")
-    public ResponseEntity<List<Notification>> getNotifications(@PathVariable String userId,
-                                                               @RequestParam(defaultValue = "false") boolean includeRead) {
-        logger.info("Fetching notifications for userId: {}, includeRead: {}", userId, includeRead);
-        try {
-            List<Notification> notifications = includeRead
-                    ? service.getAllNotifications(userId) // New service method for all notifications
-                    : service.getUnreadNotifications(userId);
-            return new ResponseEntity<>(notifications, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            logger.error("Failed to fetch notifications: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-    }*/
-/*
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<Notification>> getUnreadNotifications(@PathVariable String userId) {
-        logger.info("Fetching unread notifications for userId: {}", userId);
-        try {
-            List<Notification> notifications = service.getUnreadNotifications(userId);
-            return new ResponseEntity<>(notifications, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            logger.error("Failed to fetch unread notifications: {}", e.getMessage());
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-    }*/
 
     //read one
     @PutMapping("/{notificationId}/read")
@@ -99,7 +75,8 @@ public class NotificationController {
     public ResponseEntity<Void> markAllNotificationsAsRead(@PathVariable String userId) {
         logger.info("Marking all notifications as read for userId: {}", userId);
         try {
-            service.markAllNotificationsAsRead(userId);
+            Long userIdLong = Long.parseLong(userId);
+            service.markAllNotificationsAsRead(userIdLong);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (IllegalArgumentException e) {
             logger.error("Failed to mark all notifications as read: {}", e.getMessage());
@@ -126,7 +103,8 @@ public class NotificationController {
     public ResponseEntity<Map<String, String>> deleteAllNotificationsForUser(@PathVariable String userId) {
         logger.info("Deleting all notifications for userId: {}", userId);
         try {
-            service.deleteAllNotificationsForUser(userId);
+            Long userIdLong = Long.parseLong(userId);
+            service.deleteAllNotificationsForUser(userIdLong);
             Map<String, String> response = Map.of("message", "All notifications cleared", "type", "INFO");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {

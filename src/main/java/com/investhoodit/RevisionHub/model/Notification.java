@@ -1,5 +1,5 @@
 package com.investhoodit.RevisionHub.model;
-import lombok.Data;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -7,59 +7,90 @@ import java.time.LocalDateTime;
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id; // Assuming an ID for the entity
-        private String userId;
-        private String message;
-        private String type;
-        private boolean isRead;
-        private LocalDateTime createdAt;
+    private Long id;
 
-        // Getters and Setters
-        public Long getId() {
-            return id;
-        }
+    @Column(name = "user_id") // Map to the numeric user_id column
+    private Long userId; // Change to Long to match numeric user_id
 
-        public void setId(Long id) {
-            this.id = id;
-        }
+    private String message;
+    private String type;
+    private boolean isRead;
+    private LocalDateTime createdAt;
 
-        public String getUserId() {
-            return userId;
-        }
+    private String senderName;
+    private String messageSnippet;
+    private String groupName; // Group notification name
 
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
 
-        public String getMessage() {
-            return message;
-        }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-        public void setMessage(String message) {
-            this.message = message;
-        }
+    public Long getUserId() {
+        return userId;
+    }
 
-        public String getType() {
-            return type;
-        }
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
-        public void setType(String type) {
-            this.type = type;
-        }
+    public String getMessage() {
+        return message;
+    }
 
-        public boolean getIsRead() {
-            return isRead;
-        }
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-        public void setIsRead(boolean isRead) {
-            this.isRead = isRead;
-        }
+    public String getType() {
+        return type;
+    }
 
-        public LocalDateTime getCreatedAt() {
-            return createdAt;
-        }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-        public void setCreatedAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-        }
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getSenderName() {
+        return senderName;
+    }
+
+    public void setSenderName(String senderName) {
+        this.senderName = senderName;
+    }
+
+    public String getMessageSnippet() {
+        return messageSnippet;
+    }
+
+    public void setMessageSnippet(String messageSnippet) {
+        this.messageSnippet = messageSnippet;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
 }

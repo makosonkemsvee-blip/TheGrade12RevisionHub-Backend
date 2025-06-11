@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,6 +88,14 @@ public class GroupService {
         return new GroupDTO(group.getId(), group.getName(), group.getCreatedAt(), group.getCreatorId());
     }
 
+    @Transactional(readOnly = true)
+    public List<User> getGroupMembers(Long groupId){
+        List<GroupMembership> memberships = groupMembershipRepository.findByGroupId(groupId);
+        return memberships.stream()
+                .map(GroupMembership::getUser)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void deleteGroup(Long groupId, Long userId) {
         Group group = groupRepository.findById(groupId)
@@ -96,5 +105,9 @@ public class GroupService {
         }
         groupMembershipRepository.deleteByGroupId(groupId);
         groupRepository.deleteById(groupId);
+    }
+    public String getGroupName(Long groupId) {
+        Optional<Group> group = groupRepository.findById(groupId);
+        return group.map(Group::getName).orElse("Unnamed Group"); // Fallback if not found
     }
 }
