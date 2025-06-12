@@ -1,6 +1,7 @@
 package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.model.ApiResponse;
+import com.investhoodit.RevisionHub.model.QuestionPaper;
 import com.investhoodit.RevisionHub.model.Quiz;
 import com.investhoodit.RevisionHub.service.QuizService;
 import org.springframework.http.HttpStatus;
@@ -22,16 +23,31 @@ public class QuizController {
     }
 
     @GetMapping("/quizzes")
-    public ResponseEntity<ApiResponse> findQuizzes() {
+    public ResponseEntity<ApiResponse<List<Quiz>>> findQuizzes() {
         try {
             List<Quiz> quizzes = quizService.findQuizzesForUser();
-            return ResponseEntity.ok(new ApiResponse("Quizzes retrieved successfully", true, quizzes));
+            ApiResponse<List<Quiz>> response = new ApiResponse<>(
+                    true,
+                    "Quizzes retrieved successfully",
+                    quizzes
+            );
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse("No quizzes found: " + e.getMessage(), false, null));
-        } catch (Exception e) {
+            ApiResponse<List<Quiz>> response = new ApiResponse<>(
+                    false,
+                    "No quizzes found: " + e.getMessage(),
+                    null
+            );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse("An error occurred while retrieving quizzes: " + e.getMessage(), false, null));
+                    .body(response);
+        } catch (Exception e) {
+            ApiResponse<List<Quiz>> response = new ApiResponse<>(
+                    false,
+                    "An error occurred while retrieving quizzes: " + e.getMessage(),
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(response);
         }
     }
 }

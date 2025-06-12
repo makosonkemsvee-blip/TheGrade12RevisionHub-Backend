@@ -2,6 +2,7 @@ package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.model.QuestionPaper;
+import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.QuestionPaperService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,15 +23,25 @@ public class FindQuestionPaperController {
     }
 
     @GetMapping("/question-papers")
-    public ResponseEntity<ApiResponse> findQuestionPaperBySubject(@RequestParam String subjectName) {
+    public ResponseEntity<ApiResponse<List<QuestionPaper>>> findQuestionPaperBySubject(@RequestParam String subjectName) {
         try {
             List<QuestionPaper> papers = questionPaperService.findBySubjectName(subjectName);
-                return ResponseEntity.ok(new ApiResponse("Question papers retrieved successfully", true, papers));
+            ApiResponse<List<QuestionPaper>> response = new ApiResponse<>(
+                    true,
+                    "Question papers retrieved successfully",
+                    papers
+            );
+                return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             //log.error("Error removing subject: {}", subjectName, e);
+            ApiResponse<List<QuestionPaper>> response = new ApiResponse<>(
+                    false,
+                    "An error occurred while retrieving the question papers: " + e.getMessage(),
+                    null
+            );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse("An error occurred while retrieving the question papers: " + e.getMessage(), false, null));
+                    .body(response);
         }
     }
 
