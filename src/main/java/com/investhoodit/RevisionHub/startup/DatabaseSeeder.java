@@ -18,7 +18,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        questionPaperService.savePdfFilesFromFolder();
         subjectService.autoAddSubject();
+        questionPaperService.savePdfFilesFromFolder();
+
     }
 }
