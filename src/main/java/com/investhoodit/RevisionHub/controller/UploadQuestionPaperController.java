@@ -2,6 +2,7 @@ package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.model.QuestionPaper;
+import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.UploadQuestionPaperService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,21 +21,41 @@ public class UploadQuestionPaperController {
     }
 
     @PostMapping("/upload-paper")
-    public ResponseEntity<ApiResponse> uploadQuestionPaper(@RequestParam String subjectName, @RequestPart MultipartFile file) {
+    public ResponseEntity<ApiResponse<QuestionPaper>> uploadQuestionPaper(@RequestParam String subjectName, @RequestPart MultipartFile file) {
         try{
             QuestionPaper questionPaper = uploadQuestionPaperService.uploadQuestionPaper(subjectName,file);
             if(questionPaper == null){
+                ApiResponse<QuestionPaper> response = new ApiResponse<>(
+                        false,
+                        "Failed to upload new question paper",
+                        null
+                );
                 return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Failed to upload new question paper", false, null));
+                        .body(response);
             }else {
-                return ResponseEntity.ok(new ApiResponse("New " + subjectName + " question paper upload successful", true, questionPaper));
+                ApiResponse<QuestionPaper> response = new ApiResponse<>(
+                        true,
+                        "New " + subjectName + " question paper upload successful",
+                        questionPaper
+                );
+                return ResponseEntity.ok().body(response);
             }
         } catch (IllegalArgumentException e) {
+            ApiResponse<QuestionPaper> response = new ApiResponse<>(
+                    false,
+                    "Invalid input: " + e.getMessage(),
+                    null
+            );
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Invalid input: " + e.getMessage(), false, null));
+                    .body(response);
         }catch (Exception e) {
+            ApiResponse<QuestionPaper> response = new ApiResponse<>(
+                    false,
+                    e.getMessage(),
+                    null
+            );
             return  ResponseEntity.badRequest()
-                    .body(new ApiResponse(e.getMessage(),false,null));
+                    .body(response);
         }
     }
 }

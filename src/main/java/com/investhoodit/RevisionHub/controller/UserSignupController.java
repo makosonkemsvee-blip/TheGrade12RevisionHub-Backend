@@ -23,22 +23,42 @@ public class UserSignupController {
     }
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<ApiResponse> signUp(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<ApiResponse<User>> signUp(@Valid @RequestBody UserDTO userDTO) {
         try {
             User createdUser = userSignupService.signUp(userDTO);
             if (createdUser != null) {
+                ApiResponse<User> response = new ApiResponse<>(
+                        true,
+                        "User created successfully",
+                        createdUser
+                );
                 return ResponseEntity.status(201)
-                        .body(new ApiResponse("User created successfully", true, createdUser));
+                        .body(response);
             } else {
+                ApiResponse<User> response = new ApiResponse<>(
+                        false,
+                        "Email already exist.",
+                        null
+                );
                 return ResponseEntity.badRequest()
-                        .body(new ApiResponse("Email already exist.", false, null));
+                        .body(response);
             }
         } catch (IllegalArgumentException e) {
+            ApiResponse<User> response = new ApiResponse<>(
+                    false,
+                    "Invalid input: " + e.getMessage(),
+                    null
+            );
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse("Invalid input: " + e.getMessage(), false, null));
+                    .body(response);
         } catch (Exception e) {
+            ApiResponse<User> response = new ApiResponse<>(
+                    false,
+                    "Signup failed: " + e.getMessage(),
+                    null
+            );
             return ResponseEntity.status(500)
-                    .body(new ApiResponse("Signup failed: " + e.getMessage(), false, null));
+                    .body(response);
         }
     }
 }

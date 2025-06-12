@@ -17,10 +17,12 @@ public class UserLoginService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
 
-    public UserLoginService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserLoginService(UserRepository userRepository, PasswordEncoder passwordEncoder, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.notificationService = notificationService;
     }
 
     @Value("${jwt.secret}")
@@ -39,6 +41,11 @@ public class UserLoginService {
 
         // Update firstLogin flag after successful login
         if (user.isFirstLogin()) {
+            //logger.info("First login detected for user ID: {}, sending welcome notification", user.getId());
+            String welcomeMessage = "Welcome to the System, we are pleased to have you onboard, " + user.getFirstName() + " " + user.getLastName() + "!";
+            notificationService.createNotification(user.getId(), welcomeMessage, "WELCOME");
+           // logger.info("Welcome notification sent for user ID: {}", user.getId());
+
             user.setFirstLogin(false);
             userRepository.save(user);
         }
