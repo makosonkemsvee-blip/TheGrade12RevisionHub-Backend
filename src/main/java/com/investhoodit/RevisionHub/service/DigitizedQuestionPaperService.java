@@ -69,94 +69,10 @@ public class DigitizedQuestionPaperService {
 
             }
 
-//            log.info("Starting initializeInteractivePapers");
-//            Subject englishSubject = subjectRepository.findBySubjectName("English")
-//                    .orElseGet(() -> {
-//                        log.info("Creating English subject");
-//                        Subject newSubject = new Subject();
-//                        newSubject.setSubjectName("English");
-//                        return subjectRepository.save(newSubject);
-//                    });
-//
-//            Optional<DigitizedQuestionPaper> existingPaper = digitizedQuestionPaperRepository
-//                    .findAll()
-//                    .stream()
-//                    .filter(p -> p.getFileName().equals("English First Additional Language P1 - November 2020") && p.isInteractive())
-//                    .findFirst();
-//
-//            if (existingPaper.isEmpty()) {
-//                log.info("Creating EnglishFALP12020 paper");
-//                DigitizedQuestionPaper interactivePaper = new DigitizedQuestionPaper();
-//                interactivePaper.setFileName("English First Additional Language P1 - November 2020");
-//                interactivePaper.setSubject(englishSubject);
-//                interactivePaper.setInteractive(true);
-//                digitizedQuestionPaperRepository.save(interactivePaper);
-//                log.info("Saved EnglishFALP12020 paper");
-//            } else {
-//                log.info("EnglishFALP12020 paper already exists");
-//            }
-//
-//            //log.info("Starting initializeInteractivePapers");
-//            Subject mathsSubject = subjectRepository.findBySubjectName("Mathematics")
-//                    .orElseGet(() -> {
-//                      //  log.info("Creating English subject");
-//                        Subject newSubject = new Subject();
-//                        newSubject.setSubjectName("Mathematics");
-//                        return subjectRepository.save(newSubject);
-//                    });
-//
-//            Optional<DigitizedQuestionPaper> existingPaper2 = digitizedQuestionPaperRepository
-//                    .findAll()
-//                    .stream()
-//                    .filter(p -> p.getFileName().equals("MATHEMATICS P1 - NOVEMBER 2022") && p.isInteractive())
-//                    .findFirst();
-//
-//            if (existingPaper2.isEmpty()) {
-//                //log.info("Creating EnglishFALP12020 paper");
-//                DigitizedQuestionPaper interactivePaper = new DigitizedQuestionPaper();
-//                interactivePaper.setFileName("MATHEMATICS P1 - NOVEMBER 2022");
-//                interactivePaper.setSubject(mathsSubject);
-//                interactivePaper.setInteractive(true);
-//                digitizedQuestionPaperRepository.save(interactivePaper);
-//              //  log.info("Saved EnglishFALP12020 paper");
-//            } else {
-//              //  log.info("EnglishFALP12020 paper already exists");
-//            }
         } catch (Exception e) {
             log.error("Error initializing interactive papers: {}", e.getMessage(), e);
         }
     }
-
-    /*/public void savePdfFilesFromFolder() throws IOException {
-        File folder = new File(pdfFolderPath + "/digitized");
-        File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".pdf"));
-        List<DigitizedQuestionPaper> digitizedQuestionPapers = new ArrayList<>();
-
-        if (files != null) {
-            for (File file : files) {
-                byte[] fileData = new byte[(int) file.length()];
-                try (FileInputStream fis = new FileInputStream(file)) {
-                    fis.read(fileData);
-                }
-                DigitizedQuestionPaper pdfFile = new DigitizedQuestionPaper();
-                pdfFile.setFileName(file.getName());
-                pdfFile.setFileData(fileData);
-                digitizedQuestionPapers.add(pdfFile);
-            }
-        }
-        for (DigitizedQuestionPaper digitizedQuestionPaper : digitizedQuestionPapers) {
-            for (Subject subject : subjectRepository.findAll()) {
-                String subjectName = subject.getSubjectName();
-                if (digitizedQuestionPaper.getFileName().toLowerCase().contains(subjectName.toLowerCase())) {
-                    digitizedQuestionPaper.setSubject(subject);
-                }
-            }
-        }
-
-        if (allDigitizedQuestionPapers().isEmpty()) {
-            digitizedQuestionPaperRepository.saveAll(digitizedQuestionPapers);
-        }
-    }*/
 
     public List<DigitizedQuestionPaper> allDigitizedQuestionPapers() {
         return digitizedQuestionPaperRepository.findAll();
