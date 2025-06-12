@@ -1,13 +1,7 @@
 package com.investhoodit.RevisionHub.service;
 
-import com.investhoodit.RevisionHub.model.DigitizedQuestionPaper;
-import com.investhoodit.RevisionHub.model.Subject;
-import com.investhoodit.RevisionHub.model.User;
-import com.investhoodit.RevisionHub.model.UserSubjects;
-import com.investhoodit.RevisionHub.repository.DigitizedQuestionPaperRepository;
-import com.investhoodit.RevisionHub.repository.SubjectRepository;
-import com.investhoodit.RevisionHub.repository.UserRepository;
-import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
+import com.investhoodit.RevisionHub.model.*;
+import com.investhoodit.RevisionHub.repository.*;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,48 +25,103 @@ public class DigitizedQuestionPaperService {
     private final SubjectRepository subjectRepository;
     private final UserSubjectsRepository userSubjectsRepository;
     private final UserRepository userRepository;
+    private final QuestionPaperRepository questionPaperRepository;
 
     public DigitizedQuestionPaperService(
             DigitizedQuestionPaperRepository digitizedQuestionPaperRepository,
             SubjectRepository subjectRepository,
             UserSubjectsRepository userSubjectsRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, QuestionPaperRepository questionPaperRepository) {
         this.digitizedQuestionPaperRepository = digitizedQuestionPaperRepository;
         this.subjectRepository = subjectRepository;
         this.userSubjectsRepository = userSubjectsRepository;
         this.userRepository = userRepository;
+        this.questionPaperRepository = questionPaperRepository;
     }
 
     @PostConstruct
     @Transactional
     public void initializeInteractivePapers() {
         try {
-            log.info("Starting initializeInteractivePapers");
-            Subject englishSubject = subjectRepository.findBySubjectName("English")
-                    .orElseGet(() -> {
-                        log.info("Creating English subject");
-                        Subject newSubject = new Subject();
-                        newSubject.setSubjectName("English");
-                        return subjectRepository.save(newSubject);
-                    });
 
-            Optional<DigitizedQuestionPaper> existingPaper = digitizedQuestionPaperRepository
-                    .findAll()
-                    .stream()
-                    .filter(p -> p.getFileName().equals("English First Additional Language P1 - November 2020") && p.isInteractive())
-                    .findFirst();
+            for (QuestionPaper questionPaper: questionPaperRepository.findAll()) {
+                log.info("Starting initializeInteractivePapers");
+                Subject subject = questionPaper.getSubject();
+                String fileName = questionPaper.getFileName().substring(0, questionPaper.getFileName().lastIndexOf("."));
 
-            if (existingPaper.isEmpty()) {
-                log.info("Creating EnglishFALP12020 paper");
-                DigitizedQuestionPaper interactivePaper = new DigitizedQuestionPaper();
-                interactivePaper.setFileName("English First Additional Language P1 - November 2020");
-                interactivePaper.setSubject(englishSubject);
-                interactivePaper.setInteractive(true);
-                digitizedQuestionPaperRepository.save(interactivePaper);
-                log.info("Saved EnglishFALP12020 paper");
-            } else {
-                log.info("EnglishFALP12020 paper already exists");
+                Optional<DigitizedQuestionPaper> existingPaper = digitizedQuestionPaperRepository
+                        .findAll()
+                        .stream()
+                        .filter(p -> p.getFileName().equals(fileName) && p.isInteractive())
+                        .findFirst();
+
+                if (existingPaper.isEmpty()) {
+                    log.info("Creating paper");
+                    DigitizedQuestionPaper interactivePaper = new DigitizedQuestionPaper();
+                    interactivePaper.setFileName(fileName);
+                    interactivePaper.setSubject(subject);
+                    interactivePaper.setInteractive(true);
+                    digitizedQuestionPaperRepository.save(interactivePaper);
+                    log.info("Saved paper");
+                } else {
+                    log.info("Paper already exists");
+                }
+
             }
+
+//            log.info("Starting initializeInteractivePapers");
+//            Subject englishSubject = subjectRepository.findBySubjectName("English")
+//                    .orElseGet(() -> {
+//                        log.info("Creating English subject");
+//                        Subject newSubject = new Subject();
+//                        newSubject.setSubjectName("English");
+//                        return subjectRepository.save(newSubject);
+//                    });
+//
+//            Optional<DigitizedQuestionPaper> existingPaper = digitizedQuestionPaperRepository
+//                    .findAll()
+//                    .stream()
+//                    .filter(p -> p.getFileName().equals("English First Additional Language P1 - November 2020") && p.isInteractive())
+//                    .findFirst();
+//
+//            if (existingPaper.isEmpty()) {
+//                log.info("Creating EnglishFALP12020 paper");
+//                DigitizedQuestionPaper interactivePaper = new DigitizedQuestionPaper();
+//                interactivePaper.setFileName("English First Additional Language P1 - November 2020");
+//                interactivePaper.setSubject(englishSubject);
+//                interactivePaper.setInteractive(true);
+//                digitizedQuestionPaperRepository.save(interactivePaper);
+//                log.info("Saved EnglishFALP12020 paper");
+//            } else {
+//                log.info("EnglishFALP12020 paper already exists");
+//            }
+//
+//            //log.info("Starting initializeInteractivePapers");
+//            Subject mathsSubject = subjectRepository.findBySubjectName("Mathematics")
+//                    .orElseGet(() -> {
+//                      //  log.info("Creating English subject");
+//                        Subject newSubject = new Subject();
+//                        newSubject.setSubjectName("Mathematics");
+//                        return subjectRepository.save(newSubject);
+//                    });
+//
+//            Optional<DigitizedQuestionPaper> existingPaper2 = digitizedQuestionPaperRepository
+//                    .findAll()
+//                    .stream()
+//                    .filter(p -> p.getFileName().equals("MATHEMATICS P1 - NOVEMBER 2022") && p.isInteractive())
+//                    .findFirst();
+//
+//            if (existingPaper2.isEmpty()) {
+//                //log.info("Creating EnglishFALP12020 paper");
+//                DigitizedQuestionPaper interactivePaper = new DigitizedQuestionPaper();
+//                interactivePaper.setFileName("MATHEMATICS P1 - NOVEMBER 2022");
+//                interactivePaper.setSubject(mathsSubject);
+//                interactivePaper.setInteractive(true);
+//                digitizedQuestionPaperRepository.save(interactivePaper);
+//              //  log.info("Saved EnglishFALP12020 paper");
+//            } else {
+//              //  log.info("EnglishFALP12020 paper already exists");
+//            }
         } catch (Exception e) {
             log.error("Error initializing interactive papers: {}", e.getMessage(), e);
         }
