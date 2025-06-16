@@ -1,7 +1,8 @@
 package com.investhoodit.RevisionHub.controller;
 
+import com.investhoodit.RevisionHub.dto.GroupUsersUpdateDTO;
+import com.investhoodit.RevisionHub.dto.UserDTO;
 import com.investhoodit.RevisionHub.model.Message;
-import com.investhoodit.RevisionHub.model.Notification;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.MessageService;
 import com.investhoodit.RevisionHub.service.NotificationService;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 public class WebSocketController {
@@ -44,8 +44,8 @@ public class WebSocketController {
             throw new IllegalArgumentException("Sender ID cannot be null");
         }
         Long senderId = Long.valueOf(message.getSenderId());
-        User sender = userRepository.findById(message.getSenderId())
-                .orElseThrow(() -> new RuntimeException("Sender not found: " + message.getSenderId()));
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new RuntimeException("Sender not found: " + senderId));
         Message savedMessage = messageService.createMessage(sender.getId(), null, null, message.getContent(), "GROUP");
         savedMessage.setSenderName(sender.getFirstName() + " " + sender.getLastName());
         savedMessage.setMessageSnippet(message.getContent().length() > 7 ? message.getContent().substring(0, 7) + "..." : message.getContent());
@@ -54,7 +54,7 @@ public class WebSocketController {
         messagingTemplate.convertAndSend("/topic/group", savedMessage);
         System.out.println("Sent group message to /topic/group: " + savedMessage.getId());
 
-        // Create notifications for all users (excluding sender, assuming a global group; adjust logic if needed)
+        // Create notifications for all users (excluding sender)
         userRepository.findAll().forEach(user -> {
             if (!user.getId().equals(sender.getId())) {
                 notificationService.createNotification(
@@ -75,30 +75,28 @@ public class WebSocketController {
             throw new IllegalArgumentException("Sender ID cannot be null");
         }
         Long senderId = Long.valueOf(message.getSenderId());
-        User sender = userRepository.findById(message.getSenderId())
-                .orElseThrow(() -> new RuntimeException("Sender not found: " + message.getSenderId()));
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new RuntimeException("Sender not found: " + senderId));
         Message savedMessage = messageService.createMessage(sender.getId(), null, groupId, message.getContent(), "GROUP");
         savedMessage.setSenderName(sender.getFirstName() + " " + sender.getLastName());
         savedMessage.setMessageSnippet(message.getContent().length() > 7 ? message.getContent().substring(0, 7) + "..." : message.getContent());
 
-        //fetch group name from Group table
-        String groupName = groupService.getGroupName(groupId) != null ? groupService.getGroupName(groupId) : "Unnamed Group";
+        // Fetch group name
+        final String groupName = groupService.getGroupName(groupId) != null ? groupService.getGroupName(groupId) : "Unnamed Group";
 
         // Broadcast message
         messagingTemplate.convertAndSend("/topic/group/" + groupId, savedMessage);
         System.out.println("Sent group message to /topic/group/" + groupId + ": " + savedMessage.getId());
 
         // Create notifications for group members except sender
-        List<User> members = groupService.getGroupMembers(groupId);
+        List<UserDTO> members = groupService.getGroupMembers(groupId);
         members.stream()
                 .filter(member -> !member.getId().equals(sender.getId()))
-                .forEach(member -> {
-                    notificationService.createNotification(
-                            member.getId(),
-                            "New message in " + '"' + groupName + '"' + " group from "+ savedMessage.getSenderName() + ": " + savedMessage.getMessageSnippet(),
-                            "chat"
-                    );
-                });
+                .forEach(member -> notificationService.createNotification(
+                        member.getId(),
+                        "New message in \"" + groupName + "\" group from " + savedMessage.getSenderName() + ": " + savedMessage.getMessageSnippet(),
+                        "chat"
+                ));
     }
 
     @MessageMapping("/chat/private")
@@ -111,10 +109,10 @@ public class WebSocketController {
         }
         Long senderId = Long.valueOf(message.getSenderId());
         Long recipientId = Long.valueOf(message.getRecipientId());
-        User sender = userRepository.findById(message.getSenderId())
-                .orElseThrow(() -> new RuntimeException("Sender not found: " + message.getSenderId()));
-        User recipient = userRepository.findById(message.getRecipientId())
-                .orElseThrow(() -> new RuntimeException("Recipient not found: " + message.getRecipientId()));
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new RuntimeException("Sender not found: " + senderId));
+        User recipient = userRepository.findById(recipientId)
+                .orElseThrow(() -> new RuntimeException("Recipient not found: " + recipientId));
         Message savedMessage = messageService.createMessage(sender.getId(), recipient.getId(), null, message.getContent(), "PRIVATE");
         savedMessage.setSenderName(sender.getFirstName() + " " + sender.getLastName());
         savedMessage.setMessageSnippet(message.getContent().length() > 7 ? message.getContent().substring(0, 7) + "..." : message.getContent());
@@ -130,5 +128,13 @@ public class WebSocketController {
                 "New private message from " + savedMessage.getSenderName() + ": " + savedMessage.getMessageSnippet(),
                 "chat"
         );
+    }
+
+    @MessageMapping("/group/{groupId}/users")
+    public void updateGroupUsers(@DestinationVariable Long groupId, @Payload GroupUsersUpdateDTO update) {
+        System.out.println("Received group users update for group " + groupId + ": " + update.getUsers().size() + " users");
+        // Broadcast updated users to subscribers
+        messagingTemplate.convertAndSend("/topic/group/" + groupId + "/users", update.getUsers());
+        System.out.println("Notified group users for group " + groupId + ": " + update.getUsers().size() + " users");
     }
 }
