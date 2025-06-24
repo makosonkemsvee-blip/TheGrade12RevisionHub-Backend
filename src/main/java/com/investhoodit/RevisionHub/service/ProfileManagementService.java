@@ -108,6 +108,7 @@ public class ProfileManagementService {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             UserResponse userResponse = new UserResponse();
+            userResponse.setUserId(user.getId());
             userResponse.setFirstName(user.getFirstName());
             userResponse.setLastName(user.getLastName());
             userResponse.setEmail(user.getEmail());
