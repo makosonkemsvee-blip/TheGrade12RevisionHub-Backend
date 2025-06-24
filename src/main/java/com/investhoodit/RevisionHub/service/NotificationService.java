@@ -46,7 +46,7 @@ public class NotificationService {
         payload.put("userId", savedNotification.getUserId());
         payload.put("message", savedNotification.getMessage());
         payload.put("type", savedNotification.getType());
-        payload.put("isRead", savedNotification.isRead()); // Changed from getIsRead() to isRead()
+        payload.put("isRead", savedNotification.isRead());
         payload.put("createdAt", savedNotification.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         payload.put("senderName", savedNotification.getSenderName());
         payload.put("messageSnippet", savedNotification.getMessageSnippet());
