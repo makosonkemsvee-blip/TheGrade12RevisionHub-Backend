@@ -92,7 +92,7 @@ public class AddDeleteSubjectController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<List<String>>> userSubject() {
         try {
-         //   log.info("Fetching enrolled subjects for user");
+            //   log.info("Fetching enrolled subjects for user");
             List<String> subjects = addSubjectService.getAllStudentSubjects();
             ApiResponse<List<String>> response = new ApiResponse<>(
                     true,
@@ -101,7 +101,7 @@ public class AddDeleteSubjectController {
             );
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {
-         //   log.error("Error fetching enrolled subjects", e);
+            //   log.error("Error fetching enrolled subjects", e);
             ApiResponse<List<String>> response = new ApiResponse<>(
                     false,
                     "Failed to fetch subjects: " + e.getMessage(),

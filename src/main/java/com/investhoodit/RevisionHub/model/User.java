@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.Getter;
+import com.investhoodit.RevisionHub.model.Settings;
 
 @Data
 @Entity
@@ -33,4 +34,8 @@ public class User {
     private String role;
     @Column(name = "first_login", nullable = false)
     private boolean firstLogin = true;
+
+    @ManyToOne
+    @JoinColumn(name = "settings_username")
+    private Settings settings;
 }

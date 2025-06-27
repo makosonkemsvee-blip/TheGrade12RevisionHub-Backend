@@ -22,13 +22,13 @@ public class AddDeleteSubjectService {
 	private final UserSubjectsRepository userSubjectsRepository;
 	private final UserRepository userRepository;
 
-    public AddDeleteSubjectService(SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
-        this.subjectRepository = subjectRepository;
-        this.userSubjectsRepository = userSubjectsRepository;
-        this.userRepository = userRepository;
-    }
+	public AddDeleteSubjectService(SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
+		this.subjectRepository = subjectRepository;
+		this.userSubjectsRepository = userSubjectsRepository;
+		this.userRepository = userRepository;
+	}
 
-    public void autoAddSubject() {
+	public void autoAddSubject() {
 		List<String> subjectNames = Arrays.asList(
 				"Accounting", "Afrikaans", "Agricultural Science",
 				"Business Studies", "Computer Applications Technology",
@@ -74,19 +74,19 @@ public class AddDeleteSubjectService {
 			return false;
 		}
 
-			// Check if user already added this subject
-			boolean exists = userSubjectsRepository.existsByUserAndSubject(user, subject);
-			if (exists) {
-				return false;
-			}
+		// Check if user already added this subject
+		boolean exists = userSubjectsRepository.existsByUserAndSubject(user, subject);
+		if (exists) {
+			return false;
+		}
 
-			// Add subject to user
-			UserSubjects userSubjects = new UserSubjects();
-			userSubjects.setUser(user);
-			userSubjects.setSubject(subject);
-			userSubjects.setCreatedAt(new Date());
-		    userSubjectsRepository.save(userSubjects);
-			return true;
+		// Add subject to user
+		UserSubjects userSubjects = new UserSubjects();
+		userSubjects.setUser(user);
+		userSubjects.setSubject(subject);
+		userSubjects.setCreatedAt(new Date());
+		userSubjectsRepository.save(userSubjects);
+		return true;
 	}
 
 	public List<String> getAllStudentSubjects() {
@@ -114,7 +114,7 @@ public class AddDeleteSubjectService {
 		userSubjectsRepository.deleteByUserAndSubject(user, subject);
 		return true;
 	}
-	
+
 	public List<String> allSubjects(){
 		List<String> subjectNames = new ArrayList<>();
 		for (Subject subject : subjectRepository.findAll()){
