@@ -6,6 +6,7 @@ import com.investhoodit.RevisionHub.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class MessageService {
         message.setGroupId(groupId);
         message.setContent(content);
         message.setType(type);
-        message.setCreatedAt(LocalDateTime.now());
+        message.setCreatedAt(Instant.now());
         System.out.println("Creating message: " + content + ", type: " + type + ", groupId: " + groupId);
         Message savedMessage = messageRepository.save(message);
         System.out.println("Saved message with ID: " + savedMessage.getId());
