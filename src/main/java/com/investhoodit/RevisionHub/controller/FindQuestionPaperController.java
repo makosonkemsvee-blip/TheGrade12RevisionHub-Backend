@@ -27,8 +27,8 @@ public class FindQuestionPaperController {
         try {
             List<QuestionPaper> papers = questionPaperService.findBySubjectName(subjectName);
             ApiResponse<List<QuestionPaper>> response = new ApiResponse<>(
-                    true,
                     "Question papers retrieved successfully",
+                    true,
                     papers
             );
                 return ResponseEntity.ok(response);
@@ -36,8 +36,8 @@ public class FindQuestionPaperController {
         } catch (Exception e) {
             //log.error("Error removing subject: {}", subjectName, e);
             ApiResponse<List<QuestionPaper>> response = new ApiResponse<>(
-                    false,
                     "An error occurred while retrieving the question papers: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

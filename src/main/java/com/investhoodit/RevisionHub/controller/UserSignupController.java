@@ -28,16 +28,16 @@ public class UserSignupController {
             User createdUser = userSignupService.signUp(userDTO);
             if (createdUser != null) {
                 ApiResponse<User> response = new ApiResponse<>(
-                        true,
                         "User created successfully",
+                        true,
                         createdUser
                 );
                 return ResponseEntity.status(201)
                         .body(response);
             } else {
                 ApiResponse<User> response = new ApiResponse<>(
-                        false,
                         "Email already exist.",
+                        false,
                         null
                 );
                 return ResponseEntity.badRequest()
@@ -45,16 +45,16 @@ public class UserSignupController {
             }
         } catch (IllegalArgumentException e) {
             ApiResponse<User> response = new ApiResponse<>(
-                    false,
                     "Invalid input: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.badRequest()
                     .body(response);
         } catch (Exception e) {
             ApiResponse<User> response = new ApiResponse<>(
-                    false,
                     "Signup failed: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(500)

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -52,7 +53,7 @@ public class UserService {
                 });
         // Update user fields based on profileData
         if (profileData.containsKey("username")) {
-            user.setUsername((String) profileData.get("username"));
+            user.setFirstName((String) profileData.get("username"));
         }
         if (profileData.containsKey("email")) {
             user.setEmail((String) profileData.get("email"));
@@ -61,5 +62,34 @@ public class UserService {
         userRepository.save(user);
         log.info("Profile saved successfully for user: {}", email);
     }
+
+    public User searchUser(String email){
+
+        return userRepository.findUserByEmail(email);
+
+    }
+
+    public List<User> getAllStudents() {
+
+        return userRepository.findAll();
+
+    }
+
+    public boolean removeUser(String email) {
+        User user = userRepository.findUserByEmail(email);
+
+        if(user != null) {
+            userRepository.delete(user);
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
+    public long countStudents(){
+        return userRepository.countByRole("STUDENT");
+    }
+
 
 }

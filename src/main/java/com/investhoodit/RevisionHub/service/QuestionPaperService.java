@@ -1,13 +1,9 @@
 package com.investhoodit.RevisionHub.service;
 
-import com.investhoodit.RevisionHub.model.QuestionPaper;
-import com.investhoodit.RevisionHub.model.Subject;
-import com.investhoodit.RevisionHub.model.User;
-import com.investhoodit.RevisionHub.model.UserSubjects;
-import com.investhoodit.RevisionHub.repository.QuestionPaperRepository;
-import com.investhoodit.RevisionHub.repository.SubjectRepository;
-import com.investhoodit.RevisionHub.repository.UserRepository;
-import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
+import com.investhoodit.RevisionHub.dto.QuizDTO;
+import com.investhoodit.RevisionHub.model.*;
+import com.investhoodit.RevisionHub.repository.QuizRepository;
+import com.investhoodit.RevisionHub.repository.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,7 +13,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class QuestionPaperService {
@@ -29,12 +27,16 @@ public class QuestionPaperService {
     private final SubjectRepository subjectRepository;
     private final UserSubjectsRepository userSubjectsRepository;
     private final UserRepository userRepository;
+    private final QuizRepository quizRepository;
+    private final QuestionRepository questionRepository;
 
-    public QuestionPaperService(QuestionPaperRepository questionPaperRepository, SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
+    public QuestionPaperService(QuestionPaperRepository questionPaperRepository, SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, QuizRepository quizRepository, QuestionRepository questionRepository) {
         this.questionPaperRepository = questionPaperRepository;
         this.subjectRepository = subjectRepository;
         this.userSubjectsRepository = userSubjectsRepository;
         this.userRepository = userRepository;
+        this.quizRepository = quizRepository;
+        this.questionRepository = questionRepository;
     }
 
     public void savePdfFilesFromFolder() throws IOException {
@@ -105,4 +107,51 @@ public class QuestionPaperService {
     public QuestionPaper findById(Long id) {
         return questionPaperRepository.findById(id).orElseThrow(() -> new RuntimeException("Question paper not found"));
     }
+
+    public Quiz createQuiz(QuizDTO quizDTO) {
+        Subject subject = subjectRepository.findById(quizDTO.getSubjectId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid subject ID"));
+
+        Quiz quiz = new Quiz();
+        quiz.setTitle(quizDTO.getTitle());
+        quiz.setSubject(subject);
+
+        // Convert QuestionDTOs to Question entities
+        List<Question> questions = quizDTO.getQuestions().stream()
+                .map(dto -> new Question(dto.getQuestionText(), dto.getOptions(), dto.getCorrectAnswer(), quiz))
+                .collect(Collectors.toList());
+        quiz.setQuestions(questions);
+
+        return quizRepository.save(quiz);
+    }
+
+    public double calculateScore(Long quizId, Map<Long, String> userAnswers) {
+        Optional<Quiz> quizOptional = quizRepository.findById(quizId);
+        if (!quizOptional.isPresent()) {
+            throw new IllegalArgumentException("Quiz not found with ID: " + quizId);
+        }
+
+        List<Question> questions = questionRepository.findByQuizId(quizId);
+        if (questions.isEmpty()) {
+            return 0.0; // No questions in the quiz
+        }
+
+        int correctAnswers = 0;
+        for (Question question : questions) {
+            String userAnswer = userAnswers.get(question.getId());
+            if (userAnswer != null && userAnswer.equals(question.getCorrectAnswer())) {
+                correctAnswers++;
+            }
+        }
+
+        return ((double) correctAnswers / questions.size()) * 100.0;
+    }
+
+    public long countQuizzes() {
+        long count = quizRepository.count();
+        System.out.println("Quiz count: " + count);
+        return count;
+    }
+
+
 }

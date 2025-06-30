@@ -12,8 +12,10 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
-
+    User findUserByEmail(String email);
     @Query("SELECT u FROM User u WHERE LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
             "OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%'))")
     List<User> searchByFirstNameOrLastName(@Param("query") String query);
+    long countByRole(String role);
+
 }
