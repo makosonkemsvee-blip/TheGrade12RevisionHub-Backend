@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.Getter;
-import com.investhoodit.RevisionHub.model.Settings;
+
+import java.time.LocalDate;
 
 @Data
 @Entity
@@ -20,6 +20,9 @@ public class User {
     private String lastName;
     private String idNumber;
     private String phoneNumber;
+    private String createdAt;
+    private boolean twoFactorEnabled;
+    private LocalDate birthday;
 
     @NotNull(message = "Email is required")
     @Email(message = "Invalid email format")
@@ -29,13 +32,44 @@ public class User {
     @NotNull(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
+
     @Lob
     private byte[] profilePicture;
     private String role;
+
     @Column(name = "first_login", nullable = false)
     private boolean firstLogin = true;
 
-    @ManyToOne
-    @JoinColumn(name = "settings_username")
+    @OneToOne
+    @JoinColumn(name = "settings_email", referencedColumnName = "email")
     private Settings settings;
+
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
+    }
+
+    public byte[] getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public boolean getTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
+    }
+
 }

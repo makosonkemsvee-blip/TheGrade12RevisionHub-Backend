@@ -31,8 +31,8 @@ public class ProfileManagementService {
 
         if (profileRequest == null || (profileRequest.getFirstName() == null && profileRequest.getLastName() == null && profileRequest.getPhoneNumber() == null)) {
             ApiResponse<User> response = new ApiResponse<>(
-                    false,
                     "At least one field (firstName, lastName, phoneNumber) must be provided",
+                    false,
                     null
             );
 
@@ -53,8 +53,8 @@ public class ProfileManagementService {
         userRepository.save(user);
 
         ApiResponse<User> response = new ApiResponse<>(
-                true,
                 "Profile updated successfully",
+                true,
                 user
         );
 
@@ -69,8 +69,8 @@ public class ProfileManagementService {
 
         if (profilePicture == null || profilePicture.isEmpty()) {
             ApiResponse<User> response = new ApiResponse<>(
-                    false,
                     "Profile picture file is required",
+                    false,
                     null
             );
             return ResponseEntity.badRequest().body(response);
@@ -82,8 +82,8 @@ public class ProfileManagementService {
         userRepository.save(user);
 
         ApiResponse<User> response = new ApiResponse<>(
-                true,
                 "Profile picture updated successfully",
+                true,
                 user
         );
 
@@ -119,15 +119,15 @@ public class ProfileManagementService {
             }
 
             ApiResponse<UserResponse> response = new ApiResponse<>(
-                    true,
                     "User details retrieved successfully",
+                    true,
                     userResponse
             );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             ApiResponse<UserResponse> response = new ApiResponse<>(
-                    false,
                     "Failed to retrieve user details: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(500).body(response);

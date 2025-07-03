@@ -45,22 +45,22 @@ public class PerformanceController {
                     size
             );
             ApiResponse<Page<PerformanceDTO>> response = new ApiResponse<>(
-                    true,
                     "Performance data retrieved successfully",
+                    true,
                     performancePage
             );
             return ResponseEntity.ok(response);
         } catch (DateTimeParseException e) {
             ApiResponse<Page<PerformanceDTO>> response = new ApiResponse<>(
-                    false,
                     "Invalid date format: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
             ApiResponse<Page<PerformanceDTO>> response = new ApiResponse<>(
-                    false,
                     "An error occurred while retrieving performance data: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(500).body(response);

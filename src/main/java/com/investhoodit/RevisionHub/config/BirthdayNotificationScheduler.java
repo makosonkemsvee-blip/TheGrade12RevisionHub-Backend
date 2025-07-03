@@ -14,7 +14,7 @@ public class BirthdayNotificationScheduler {
         this.notificationService = notificationService;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") //for a minute @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     public void sendDailyBirthdayNotifications() {
         notificationService.sendBirthdayNotifications();
     }

@@ -107,7 +107,9 @@ public class GroupService {
                             user.getEmail(),
                             user.getFirstName(),
                             user.getLastName(),
-                            user.getRole()
+                            user.getRole(),
+                            user.getCreatedAt(), // Provide createdAt from User
+                            user.getTwoFactorEnabled() // Provide twoFactorEnabled from User
                     );
                 })
                 .collect(Collectors.toList());

@@ -27,23 +27,23 @@ public class QuizController {
         try {
             List<Quiz> quizzes = quizService.findQuizzesForUser();
             ApiResponse<List<Quiz>> response = new ApiResponse<>(
-                    true,
                     "Quizzes retrieved successfully",
+                    true,
                     quizzes
             );
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             ApiResponse<List<Quiz>> response = new ApiResponse<>(
-                    false,
                     "No quizzes found: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(response);
         } catch (Exception e) {
             ApiResponse<List<Quiz>> response = new ApiResponse<>(
-                    false,
                     "An error occurred while retrieving quizzes: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
