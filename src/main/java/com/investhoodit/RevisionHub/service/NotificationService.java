@@ -65,40 +65,40 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markNotificationAsRead(Long notificationId) {
-        logger.info("Marking notification with id: {} as read", notificationId);
-        Notification notification = repository.findById(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
+    public void markNotificationAsRead(Long notificationId, Long userId) {
+        logger.info("Marking notification id: {} as read for userId: {}", notificationId, userId);
+        Notification notification = repository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found or not authorized: " + notificationId));
+        logger.info("Before save: id={}, userId={}, isRead={}",
+                notification.getId(), notification.getUserId(), notification.isRead());
         notification.setIsRead(true);
-        repository.save(notification);
-        logger.info("Notification {} marked as read", notificationId);
+        Notification saved = repository.save(notification);
+        logger.info("After save: id={}, isRead={}", saved.getId(), saved.isRead());
         Map<String, Object> payload = new HashMap<>();
-        payload.put("id", notification.getId());
-        payload.put("isRead", notification.isRead());
-        messagingTemplate.convertAndSend("/topic/notifications/" + notification.getUserId(), payload);
+        payload.put("id", saved.getId());
+        payload.put("isRead", saved.isRead());
+        messagingTemplate.convertAndSend("/topic/notifications/" + userId, payload);
+        logger.info("WebSocket message sent to /topic/notifications/{}", userId);
     }
 
     @Transactional
     public void markAllNotificationsAsRead(Long userId) {
         logger.info("Marking all notifications as read for userId: {}", userId);
-        List<Notification> notifications = repository.findByUserId(userId);
-        for (Notification notification : notifications) {
-            notification.setIsRead(true);
-            repository.save(notification);
+        int updated = repository.updateAllByUserId(userId);
+        logger.info("Marked {} notifications as read for userId: {}", updated, userId);
+        if (updated > 0) {
+            Map<String, String> payload = new HashMap<>();
+            payload.put("message", "All notifications marked as read");
+            payload.put("type", "INFO");
+            messagingTemplate.convertAndSend("/topic/notifications/" + userId, payload);
         }
-        logger.info("Marked {} notifications as read for userId: {}", notifications.size(), userId);
-        Map<String, String> payload = new HashMap<>();
-        payload.put("message", "All notifications marked as read");
-        payload.put("type", "INFO");
-        messagingTemplate.convertAndSend("/topic/notifications/" + userId, payload);
     }
 
     @Transactional
-    public void deleteNotification(Long notificationId) {
-        logger.info("Deleting notification with id: {}", notificationId);
-        Notification notification = repository.findById(notificationId)
-                .orElseThrow(() -> new IllegalArgumentException("Notification not found: " + notificationId));
-        Long userId = notification.getUserId();
+    public void deleteNotification(Long notificationId, Long userId) {
+        logger.info("Deleting notification with id: {} for userId: {}", notificationId, userId);
+        Notification notification = repository.findByIdAndUserId(notificationId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification not found or not authorized: " + notificationId));
         repository.delete(notification);
         logger.info("Deleted notification with id: {}", notificationId);
         Map<String, String> payload = new HashMap<>();
@@ -134,7 +134,7 @@ public class NotificationService {
                 if (birthMonthDay.equals(currentMonthDay)) {
                     String message = user.getFirstName() != null
                             ? "Happy Birthday, " + user.getFirstName() + " " + user.getLastName() + "! Wishing you a fantastic year ahead!"
-                            : "Happy Birthday! Wishing you a fantastic year ahead!";
+                            : "Happy Birthday! Wishing🍰🎂🎂 you🥳🥳🥳 a fantastic year ahead!";
                     createNotification(user.getId(), message, "BIRTHDAY");
                 }
             } else {
