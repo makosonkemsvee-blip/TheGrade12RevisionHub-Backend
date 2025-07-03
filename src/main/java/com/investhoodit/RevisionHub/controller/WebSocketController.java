@@ -59,7 +59,7 @@ public class WebSocketController {
             if (!user.getId().equals(sender.getId())) {
                 notificationService.createNotification(
                         user.getId(),
-                        "New group message from " + savedMessage.getSenderName() + ": " + savedMessage.getMessageSnippet(),
+                        "New Main group message from " + savedMessage.getSenderName() + ": " + savedMessage.getMessageSnippet(),
                         "chat"
                 );
             }
