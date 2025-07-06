@@ -1,31 +1,44 @@
 package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.dto.GroupDTO;
+import com.investhoodit.RevisionHub.dto.UserDTO;
 import com.investhoodit.RevisionHub.model.Group;
 import com.investhoodit.RevisionHub.model.Message;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.GroupService;
 import com.investhoodit.RevisionHub.service.MessageService;
 import com.investhoodit.RevisionHub.repository.UserRepository;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+/*
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;*/
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chat")
+@Validated
 public class MessageController {
     private final MessageService messageService;
     private final UserRepository userRepository;
     private final GroupService groupService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public MessageController(MessageService messageService, UserRepository userRepository, GroupService groupService) {
+    public MessageController(MessageService messageService, UserRepository userRepository, GroupService groupService, SimpMessagingTemplate messagingTemplate) {
         this.messageService = messageService;
         this.userRepository = userRepository;
         this.groupService = groupService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/users")
@@ -37,7 +50,7 @@ public class MessageController {
     }
 
     @GetMapping("/users/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam("query") String query) {
+    public ResponseEntity<List<User>> searchUsers(@RequestParam("query") @NotBlank String query) {
         String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         List<User> users = userRepository.searchByFirstNameOrLastName(query);
         users.removeIf(u -> u.getEmail().equals(currentUserEmail));
@@ -65,7 +78,7 @@ public class MessageController {
     }
 
     @GetMapping("/group/{groupId}")
-    public ResponseEntity<List<Message>> getGroupMessagesByGroupId(@PathVariable Long groupId, @RequestParam(value = "senderId", required = false) Long senderId) {
+    public ResponseEntity<List<Message>> getGroupMessagesByGroupId(@PathVariable @Positive Long groupId, @RequestParam(value = "senderId", required = false) Long senderId) {
         if (senderId != null) {
             List<Message> messages = messageService.getMessagesBySender(senderId, "GROUP");
             messages.removeIf(m -> !m.getGroupId().equals(groupId));
@@ -75,9 +88,15 @@ public class MessageController {
     }
 
     @PostMapping("/group")
-    public ResponseEntity<Group> createGroup(@RequestBody Map<String, Object> groupData) {
+    public ResponseEntity<Group> createGroup(@RequestBody @Validated Map<String, Object> groupData) {
         String name = (String) groupData.get("name");
         List<Integer> memberIds = (List<Integer>) groupData.get("memberIds");
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Group name is required");
+        }
+        if (memberIds == null || memberIds.isEmpty()) {
+            throw new IllegalArgumentException("At least one member is required");
+        }
         String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -85,10 +104,12 @@ public class MessageController {
         return ResponseEntity.ok(group);
     }
 
-    //edit
     @PutMapping("/group/{groupId}")
-    public ResponseEntity<GroupDTO> editGroup(@PathVariable Long groupId, @RequestBody Map<String, String> groupData) {
+    public ResponseEntity<GroupDTO> editGroup(@PathVariable @Positive Long groupId, @RequestBody @Validated Map<String, String> groupData) {
         String newName = groupData.get("name");
+        if (newName == null || newName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Group name is required");
+        }
         String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -97,11 +118,47 @@ public class MessageController {
     }
 
     @DeleteMapping("/group/{groupId}")
-    public ResponseEntity<Void> deleteGroup(@PathVariable Long groupId) {
+    public ResponseEntity<Void> deleteGroup(@PathVariable @Positive Long groupId) {
         String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         groupService.deleteGroup(groupId, currentUser.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/group/{groupId}/users")
+    public ResponseEntity<List<UserDTO>> getGroupUsers(@PathVariable Long groupId, Principal principal) {
+        String email = principal.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<UserDTO> users = groupService.getGroupUsers(groupId, user.getId());
+        return ResponseEntity.ok(users);
+    }
+
+    @PostMapping("/group/{groupId}/users")
+    public ResponseEntity<Void> addGroupUser(@PathVariable @Positive Long groupId, @RequestBody @Validated Map<String, Long> userData) {
+        Long userId = userData.get("userId");
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Valid user ID is required");
+        }
+        String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        groupService.addGroupUser(groupId, userId, currentUser.getId());
+        return ResponseEntity.status(201).build();
+    }
+
+    @DeleteMapping("/group/{groupId}/users/{userId}")
+    public ResponseEntity<Void> removeGroupUser(@PathVariable @Positive Long groupId, @PathVariable @Positive Long userId) {
+        String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        groupService.removeGroupUser(groupId, userId, currentUser.getId());
+        // Fetch updated group users
+        List<UserDTO> updatedUsers = groupService.getGroupUsers(groupId, currentUser.getId());
+        // Notify group members via WebSocket
+        messagingTemplate.convertAndSend("/topic/group/" + groupId + "/users", updatedUsers);
+        System.out.println("Notified group users for group " + groupId + ": " + updatedUsers.size() + " users");
         return ResponseEntity.noContent().build();
     }
 

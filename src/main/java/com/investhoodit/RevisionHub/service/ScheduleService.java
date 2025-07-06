@@ -33,8 +33,8 @@ public class ScheduleService {
                 user, scheduleRequest.getSubject(), scheduleRequest.getDayOfWeek(), scheduleRequest.getStartTime())) {
 
             ApiResponse<Schedule> response = new ApiResponse<>(
-                    false,
                     "Schedule already exists for this subject and time",
+                    false,
                     null
             );
             return ResponseEntity.badRequest()
@@ -44,8 +44,8 @@ public class ScheduleService {
         // Validate time range
         if (scheduleRequest.getStartTime().isAfter(scheduleRequest.getEndTime())) {
             ApiResponse<Schedule> response = new ApiResponse<>(
-                    false,
                     "Start time must be before end time",
+                    false,
                     null
             );
             return ResponseEntity.badRequest()
@@ -62,8 +62,8 @@ public class ScheduleService {
         scheduleRepository.save(schedule);
 
         ApiResponse<Schedule> response = new ApiResponse<>(
-                true,
                 "Schedule created successfully",
+                true,
                 schedule
         );
         return ResponseEntity.status(201)
@@ -77,8 +77,8 @@ public class ScheduleService {
         List<Schedule> schedules = scheduleRepository.findAllByUser(user);
 
         ApiResponse<List<Schedule>> response = new ApiResponse<>(
-                true,
                 "Schedules retrieved successfully",
+                true,
                 schedules
         );
         return ResponseEntity.ok().body(response);
@@ -93,8 +93,8 @@ public class ScheduleService {
 
         if (!scheduleRepository.existsByIdAndUser(id, user)) {
             ApiResponse<Schedule> response = new ApiResponse<>(
-                    false,
                     "Schedule not found",
+                    false,
                     null
             );
             return ResponseEntity.status(404)
@@ -107,15 +107,15 @@ public class ScheduleService {
         try {
             scheduleRepository.delete(schedule);
             ApiResponse<Schedule> response = new ApiResponse<>(
-                    true,
                     "Schedule deleted successfully",
+                    true,
                     null
             );
             return ResponseEntity.status(204).body(response);
         } catch (Exception e) {
             ApiResponse<Schedule> response = new ApiResponse<>(
-                    false,
                     "Failed to delete schedule: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.status(500)
@@ -134,8 +134,8 @@ public class ScheduleService {
         // Validate time range
         if (scheduleRequest.getStartTime().isAfter(scheduleRequest.getEndTime())) {
             ApiResponse<Schedule> response = new ApiResponse<>(
-                    false,
                     "Start time must be before end time",
+                    false,
                     null
             );
             return ResponseEntity.badRequest()
@@ -150,8 +150,8 @@ public class ScheduleService {
         scheduleRepository.save(schedule);
 
         ApiResponse<Schedule> response = new ApiResponse<>(
-                true,
                 "Schedule updated successfully",
+                true,
                 schedule
         );
 

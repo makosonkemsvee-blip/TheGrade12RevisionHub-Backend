@@ -11,3 +11,5 @@ public class SubjectDTO {
     private String subjectName;
     private String email;
 }
+
+//public record SubjectDTO(String subjectName) {}

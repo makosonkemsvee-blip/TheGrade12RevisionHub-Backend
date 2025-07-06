@@ -26,32 +26,32 @@ public class UploadQuestionPaperController {
             QuestionPaper questionPaper = uploadQuestionPaperService.uploadQuestionPaper(subjectName,file);
             if(questionPaper == null){
                 ApiResponse<QuestionPaper> response = new ApiResponse<>(
-                        false,
                         "Failed to upload new question paper",
+                        false,
                         null
                 );
                 return ResponseEntity.badRequest()
                         .body(response);
             }else {
                 ApiResponse<QuestionPaper> response = new ApiResponse<>(
-                        true,
                         "New " + subjectName + " question paper upload successful",
+                        true,
                         questionPaper
                 );
                 return ResponseEntity.ok().body(response);
             }
         } catch (IllegalArgumentException e) {
             ApiResponse<QuestionPaper> response = new ApiResponse<>(
-                    false,
                     "Invalid input: " + e.getMessage(),
+                    false,
                     null
             );
             return ResponseEntity.badRequest()
                     .body(response);
         }catch (Exception e) {
             ApiResponse<QuestionPaper> response = new ApiResponse<>(
-                    false,
                     e.getMessage(),
+                    false,
                     null
             );
             return  ResponseEntity.badRequest()

@@ -1,11 +1,14 @@
 package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.model.Notification;
+import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.repository.UserRepository;
 import com.investhoodit.RevisionHub.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +21,11 @@ import java.util.Map;
 public class NotificationController {
     private static final Logger logger = LoggerFactory.getLogger(NotificationController.class);
     private final NotificationService service;
+    private final UserRepository userRepository;
 
-    public NotificationController(NotificationService service) {
+    public NotificationController(NotificationService service, UserRepository userRepository) {
         this.service = service;
+        this.userRepository = userRepository;
     }
 
     public record NotificationRequest(
@@ -48,7 +53,14 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getNotifications(@PathVariable String userId) {
         logger.info("Fetching all notifications for userId: {}", userId);
         try {
+            String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByEmail(currentUserEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUserEmail));
             Long userIdLong = Long.parseLong(userId);
+            if (!currentUser.getId().equals(userIdLong)) {
+                logger.error("Unauthorized access to notifications for userId: {}", userId);
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
             List<Notification> notifications = service.getAllNotifications(userIdLong);
             return new ResponseEntity<>(notifications, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -62,7 +74,10 @@ public class NotificationController {
     public ResponseEntity<Void> markNotificationAsRead(@PathVariable Long notificationId) {
         logger.info("Marking notification as read: {}", notificationId);
         try {
-            service.markNotificationAsRead(notificationId);
+            String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByEmail(currentUserEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUserEmail));
+            service.markNotificationAsRead(notificationId, currentUser.getId());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (IllegalArgumentException e) {
             logger.error("Failed to mark notification as read: {}", e.getMessage());
@@ -75,7 +90,14 @@ public class NotificationController {
     public ResponseEntity<Void> markAllNotificationsAsRead(@PathVariable String userId) {
         logger.info("Marking all notifications as read for userId: {}", userId);
         try {
+            String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByEmail(currentUserEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUserEmail));
             Long userIdLong = Long.parseLong(userId);
+            if (!currentUser.getId().equals(userIdLong)) {
+                logger.error("Unauthorized access to mark all notifications for userId: {}", userId);
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
             service.markAllNotificationsAsRead(userIdLong);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (IllegalArgumentException e) {
@@ -89,7 +111,10 @@ public class NotificationController {
     public ResponseEntity<Map<String, String>> deleteNotification(@PathVariable Long notificationId) {
         logger.info("Deleting notification with id: {}", notificationId);
         try {
-            service.deleteNotification(notificationId);
+            String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByEmail(currentUserEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUserEmail));
+            service.deleteNotification(notificationId, currentUser.getId());
             Map<String, String> response = Map.of("message", "Notification deleted", "type", "INFO");
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
@@ -103,7 +128,14 @@ public class NotificationController {
     public ResponseEntity<Map<String, String>> deleteAllNotificationsForUser(@PathVariable String userId) {
         logger.info("Deleting all notifications for userId: {}", userId);
         try {
+            String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByEmail(currentUserEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUserEmail));
             Long userIdLong = Long.parseLong(userId);
+            if (!currentUser.getId().equals(userIdLong)) {
+                logger.error("Unauthorized access to delete all notifications for userId: {}", userId);
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
             service.deleteAllNotificationsForUser(userIdLong);
             Map<String, String> response = Map.of("message", "All notifications cleared", "type", "INFO");
             return new ResponseEntity<>(response, HttpStatus.OK);
