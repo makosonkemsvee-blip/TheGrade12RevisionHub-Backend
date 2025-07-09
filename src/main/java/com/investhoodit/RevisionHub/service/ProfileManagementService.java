@@ -61,14 +61,21 @@ public class ProfileManagementService {
         return ResponseEntity.status(200).body(response);
     }
 
-    public ResponseEntity<ApiResponse<User>> updateProfilePicture(MultipartFile profilePicture) throws IOException {
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfilePicture(MultipartFile profilePicture) throws IOException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        UserResponse userResponse = new UserResponse();
+        if (user.getProfilePicture() != null) {
+            String base64Image = Base64.getEncoder().encodeToString(user.getProfilePicture());
+            userResponse.setProfilePicture("data:image/jpeg;base64," + base64Image);
+        }
+
+
         if (profilePicture == null || profilePicture.isEmpty()) {
-            ApiResponse<User> response = new ApiResponse<>(
+            ApiResponse<UserResponse> response = new ApiResponse<>(
                     "Profile picture file is required",
                     false,
                     null
@@ -81,10 +88,10 @@ public class ProfileManagementService {
 
         userRepository.save(user);
 
-        ApiResponse<User> response = new ApiResponse<>(
+        ApiResponse<UserResponse> response = new ApiResponse<>(
                 "Profile picture updated successfully",
                 true,
-                user
+                userResponse
         );
 
         return ResponseEntity.status(200).body(response);

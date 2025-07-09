@@ -31,7 +31,7 @@ public class ProfileController {
     }
 
     @PutMapping(path = "/update-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<User>> updateProfilePicture(
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfilePicture(
             @RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture) throws IOException {
         return profileManagementService.updateProfilePicture(profilePicture);
     }
