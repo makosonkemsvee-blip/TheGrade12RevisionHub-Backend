@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/user/chat")
 @Validated
 public class MessageController {
     private final MessageService messageService;

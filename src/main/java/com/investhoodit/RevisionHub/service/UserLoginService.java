@@ -1,8 +1,10 @@
 package com.investhoodit.RevisionHub.service;
 
 import com.investhoodit.RevisionHub.dto.LoginRequest;
+import com.investhoodit.RevisionHub.dto.LoginResponse;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.repository.UserRepository;
+import com.investhoodit.RevisionHub.util.JwtUtil;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,23 +17,19 @@ import java.util.Date;
 @Service
 public class UserLoginService {
 
+    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final NotificationService notificationService;
 
-    public UserLoginService(UserRepository userRepository, PasswordEncoder passwordEncoder, NotificationService notificationService) {
+    public UserLoginService(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, NotificationService notificationService) {
+        this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.notificationService = notificationService;
     }
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${jwt.expiration}")
-    private long jwtExpirationMs;
-
-    public String authenticateAndGenerateToken(LoginRequest loginRequest) {
+    public LoginResponse authenticateAndGenerateToken(LoginRequest loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -49,16 +47,8 @@ public class UserLoginService {
             user.setFirstLogin(false);
             userRepository.save(user);
         }
-        return generateJwtToken(user.getEmail());
+        String token = jwtUtil.generateJwtToken(user.getEmail());
+        return new LoginResponse(token, "Login successful", user.getRole());
     }
 
-    private String generateJwtToken(String email) {
-        Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key)
-                .compact();
-    }
 }

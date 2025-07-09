@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/password")
+@RequestMapping("/api/auth/password")
 public class PasswordResetController {
 
     private final PasswordResetService passwordResetService;

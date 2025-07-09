@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class FindDigitizedQuestionPaperController {
 
     private final DigitizedQuestionPaperService digitizedQuestionPaperService;
@@ -23,7 +23,7 @@ public class FindDigitizedQuestionPaperController {
         this.digitizedQuestionPaperService = digitizedQuestionPaperService;
     }
 
-    @GetMapping
+    @GetMapping("/digitized")
     public ResponseEntity<Map<String, Object>> findDigitizedQuestionPapers(
             @RequestParam(required = false) String subjectName) {
         Map<String, Object> response = new HashMap<>();

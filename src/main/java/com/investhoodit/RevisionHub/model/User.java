@@ -41,7 +41,7 @@ public class User {
     private boolean firstLogin = true;
 
     @OneToOne
-    @JoinColumn(name = "settings_email", referencedColumnName = "email")
+    @JoinColumn(name = "settings_email")
     private Settings settings;
 
     public boolean isFirstLogin() {

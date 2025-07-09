@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class PerformanceController {
     private final PerformanceService performanceService;
 
