@@ -118,4 +118,8 @@ public class DigitizedQuestionPaperService {
         }
         return allPapers;
     }
+
+    public Optional<DigitizedQuestionPaper> findById(Long id) {
+        return digitizedQuestionPaperRepository.findById(id);
+    }
 }

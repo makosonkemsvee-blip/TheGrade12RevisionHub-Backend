@@ -41,37 +41,21 @@ public class FindDigitizedQuestionPaperController {
         }
     }
 
-    /*/@GetMapping("/digitized-question-papers/{id}/view")
-    public ResponseEntity<byte[]> viewDigitizedQuestionPaper(@PathVariable Long id) {
+    @GetMapping("/digitized/{id}")
+    public ResponseEntity<Map<String, Object>> getDigitizedPaperById(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            DigitizedQuestionPaper paper = digitizedQuestionPaperService.getPaperById(id);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("inline", paper.getFileName());
-            return new ResponseEntity<>(paper.getFileData(), headers, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(null);
+            DigitizedQuestionPaper paper = digitizedQuestionPaperService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Paper not found"));
+
+            response.put("success", true);
+            response.put("data", paper);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
-    @GetMapping("/digitized-question-papers/{id}/download")
-    public ResponseEntity<byte[]> downloadDigitizedQuestionPaper(@PathVariable Long id) {
-        try {
-            DigitizedQuestionPaper paper = digitizedQuestionPaperService.getPaperById(id);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("attachment", paper.getFileName());
-            return new ResponseEntity<>(paper.getFileData(), headers, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-        }
-    }*/
 }

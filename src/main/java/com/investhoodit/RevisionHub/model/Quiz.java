@@ -19,7 +19,7 @@ public class Quiz {
     private Subject subject;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Question> questions = new ArrayList<>();
+    private List<Question> question1s = new ArrayList<>();
 
     // Getters and setters
     public Long getId() { return id; }
@@ -28,6 +28,6 @@ public class Quiz {
     public void setTitle(String title) { this.title = title; }
     public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }
-    public List<Question> getQuestions() { return questions; }
-    public void setQuestions(List<Question> questions) { this.questions = questions; }
+    public List<Question> getQuestions() { return question1s; }
+    public void setQuestions(List<Question> question1s) { this.question1s = question1s; }
 }

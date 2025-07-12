@@ -1,56 +1,69 @@
 package com.investhoodit.RevisionHub.service;
 
-import com.investhoodit.RevisionHub.dto.PerformanceDTO;
-import com.investhoodit.RevisionHub.model.PerformanceMetric;
-import com.investhoodit.RevisionHub.repository.PerformanceMetricRepository;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import com.investhoodit.RevisionHub.model.DigitizedQuestionPaper;
+import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.model.UserPaperPerformance;
+import com.investhoodit.RevisionHub.repository.DigitizedQuestionPaperRepository;
+import com.investhoodit.RevisionHub.repository.UserPaperPerformanceRepository;
+import com.investhoodit.RevisionHub.repository.UserRepository;
+import com.investhoodit.RevisionHub.util.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class PerformanceService {
-    private final PerformanceMetricRepository performanceMetricRepository;
+    private final UserPaperPerformanceRepository performanceRepository;
+    private final UserRepository userRepository;
+    private final DigitizedQuestionPaperRepository paperRepository;
+    private final JwtUtil jwtUtil;
 
-    public PerformanceService(PerformanceMetricRepository performanceMetricRepository) {
-        this.performanceMetricRepository = performanceMetricRepository;
+    public PerformanceService(UserPaperPerformanceRepository performanceRepository,
+                              UserRepository userRepository,
+                              DigitizedQuestionPaperRepository paperRepository, JwtUtil jwtUtil) {
+        this.performanceRepository = performanceRepository;
+        this.userRepository = userRepository;
+        this.paperRepository = paperRepository;
+        this.jwtUtil = jwtUtil;
     }
 
-    @Cacheable(value = "performanceMetrics", key = "#userId + '-' + #page + '-' + #size + '-' + #subjectName + '-' + #activityType + '-' + #startDate + '-' + #endDate")
-    public Page<PerformanceDTO> getPerformanceByFilters(
-            Long userId,
-            String subjectName,
-            String activityType,
-            LocalDate startDate,
-            LocalDate endDate,
-            int page,
-            int size
-    ) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<PerformanceMetric> performancePage = performanceMetricRepository.findByFilters(
-                userId,
-                subjectName,
-                activityType,
-                startDate,
-                endDate,
-                pageable
-        );
+    public UserPaperPerformance recordAttempt(Long userId, Long paperId, int score, int maxScore) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        return performancePage.map(p -> new PerformanceDTO(
-                p.getId(),
-                p.getUser().getId(),
-                p.getSubject().getSubjectName(),
-                p.getActivityType(),
-                p.getActivityName(),
-                p.getDate(),
-                p.getScore(),
-                p.getMaxScore(),
-                p.getTimeSpent(),
-                p.getDifficulty(),
-                p.getStatus(),
-                p.getComments()
-        ));
+        DigitizedQuestionPaper paper = paperRepository.findById(paperId)
+                .orElseThrow(() -> new EntityNotFoundException("Paper not found"));
+
+        UserPaperPerformance performance = new UserPaperPerformance();
+        performance.setUser(user);
+        performance.setPaper(paper);
+        performance.setScore(score);
+        performance.setMaxScore(maxScore);
+        performance.setAttemptDate(LocalDateTime.now());
+
+        // Calculate aggregates
+        List<UserPaperPerformance> allAttempts = performanceRepository.findByUserIdAndPaperId(userId, paperId);
+        performance.setAttempts(allAttempts.size() + 1);
+
+        int highest = performanceRepository.findHighestScore(userId, paperId);
+             //   .orElse(0);
+        performance.setHighestScore(Math.max(highest, score));
+
+        double average = performanceRepository.findAverageScore(userId, paperId);
+              //  .orElse(0.0);
+        performance.setAverageScore((average * allAttempts.size() + score) / (allAttempts.size() + 1));
+
+        return performanceRepository.save(performance);
+    }
+
+    public List<UserPaperPerformance> getUserPerformance(Long userId) {
+        return performanceRepository.findByUserId(userId);
+    }
+
+    public User findByToken(String token) {
+        return userRepository.findUserByEmail(
+                jwtUtil.validateJwtAndGetEmail(token));
     }
 }

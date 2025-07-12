@@ -117,10 +117,10 @@ public class QuestionPaperService {
         quiz.setSubject(subject);
 
         // Convert QuestionDTOs to Question entities
-        List<Question> questions = quizDTO.getQuestions().stream()
+        List<Question> question1s = quizDTO.getQuestions().stream()
                 .map(dto -> new Question(dto.getQuestionText(), dto.getOptions(), dto.getCorrectAnswer(), quiz))
                 .collect(Collectors.toList());
-        quiz.setQuestions(questions);
+        quiz.setQuestions(question1s);
 
         return quizRepository.save(quiz);
     }
@@ -131,20 +131,20 @@ public class QuestionPaperService {
             throw new IllegalArgumentException("Quiz not found with ID: " + quizId);
         }
 
-        List<Question> questions = questionRepository.findByQuizId(quizId);
-        if (questions.isEmpty()) {
+        List<Question> question1s = questionRepository.findByQuizId(quizId);
+        if (question1s.isEmpty()) {
             return 0.0; // No questions in the quiz
         }
 
         int correctAnswers = 0;
-        for (Question question : questions) {
-            String userAnswer = userAnswers.get(question.getId());
-            if (userAnswer != null && userAnswer.equals(question.getCorrectAnswer())) {
+        for (Question question1 : question1s) {
+            String userAnswer = userAnswers.get(question1.getId());
+            if (userAnswer != null && userAnswer.equals(question1.getCorrectAnswer())) {
                 correctAnswers++;
             }
         }
 
-        return ((double) correctAnswers / questions.size()) * 100.0;
+        return ((double) correctAnswers / question1s.size()) * 100.0;
     }
 
     public long countQuizzes() {
