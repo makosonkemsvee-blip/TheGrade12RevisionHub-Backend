@@ -21,13 +21,11 @@ public class PerformanceController {
 
     @PostMapping("/record")
     public ResponseEntity<Map<String, Object>> recordPerformance(
-            @RequestHeader("Authorization") String token,
             @RequestBody PerformanceRequest request) {
 
         Map<String, Object> response = new HashMap<>();
         try {
-            // Extract user from JWT
-            User user = performanceService.findByToken(token);
+            User user = performanceService.findByToken();
 
             // Process request
             UserPaperPerformance performance = performanceService.recordAttempt(
@@ -46,7 +44,7 @@ public class PerformanceController {
         }
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/performance/{userId}")
     public ResponseEntity<Map<String, Object>> getUserPerformance(@PathVariable Long userId) {
         Map<String, Object> response = new HashMap<>();
         try {

@@ -8,6 +8,7 @@ import com.investhoodit.RevisionHub.repository.UserPaperPerformanceRepository;
 import com.investhoodit.RevisionHub.repository.UserRepository;
 import com.investhoodit.RevisionHub.util.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -47,12 +48,12 @@ public class PerformanceService {
         List<UserPaperPerformance> allAttempts = performanceRepository.findByUserIdAndPaperId(userId, paperId);
         performance.setAttempts(allAttempts.size() + 1);
 
-        int highest = performanceRepository.findHighestScore(userId, paperId);
-             //   .orElse(0);
+        int highest = performanceRepository.findHighestScore(userId, paperId)
+                .orElse(0);
         performance.setHighestScore(Math.max(highest, score));
 
-        double average = performanceRepository.findAverageScore(userId, paperId);
-              //  .orElse(0.0);
+        double average = performanceRepository.findAverageScore(userId, paperId)
+                .orElse(0.0);
         performance.setAverageScore((average * allAttempts.size() + score) / (allAttempts.size() + 1));
 
         return performanceRepository.save(performance);
@@ -62,8 +63,9 @@ public class PerformanceService {
         return performanceRepository.findByUserId(userId);
     }
 
-    public User findByToken(String token) {
-        return userRepository.findUserByEmail(
-                jwtUtil.validateJwtAndGetEmail(token));
+    public User findByToken() {
+        return userRepository.findByEmail(
+                SecurityContextHolder.getContext().getAuthentication().getName())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 }

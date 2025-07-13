@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserPaperPerformanceRepository extends JpaRepository<UserPaperPerformance, Long> {
     List<UserPaperPerformance> findByUserId(Long userId);
@@ -13,8 +14,8 @@ public interface UserPaperPerformanceRepository extends JpaRepository<UserPaperP
     List<UserPaperPerformance> findByUserIdAndPaperId(Long userId, Long paperId);
 
     @Query("SELECT MAX(p.score) FROM UserPaperPerformance p WHERE p.user.id = :userId AND p.paper.id = :paperId")
-    Integer findHighestScore(@Param("userId") Long userId, @Param("paperId") Long paperId);
+    Optional<Integer> findHighestScore(@Param("userId") Long userId, @Param("paperId") Long paperId);
 
     @Query("SELECT AVG(p.score) FROM UserPaperPerformance p WHERE p.user.id = :userId AND p.paper.id = :paperId")
-    Double findAverageScore(@Param("userId") Long userId, @Param("paperId") Long paperId);
+    Optional<Double> findAverageScore(@Param("userId") Long userId, @Param("paperId") Long paperId);
 }
