@@ -1,9 +1,13 @@
 package com.investhoodit.RevisionHub.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
+@Data
 @Entity
 @Table(name = "question_tbl")
 public class Question {
@@ -36,16 +40,5 @@ public class Question {
         this.correctAnswer = correctAnswer;
         this.quiz = quiz;
     }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getQuestionText() { return questionText; }
-    public void setQuestionText(String questionText) { this.questionText = questionText; }
-    public List<String> getOptions() { return options; }
-    public void setOptions(List<String> options) { this.options = options; }
-    public String getCorrectAnswer() { return correctAnswer; }
-    public void setCorrectAnswer(String correctAnswer) { this.correctAnswer = correctAnswer; }
-    public Quiz getQuiz() { return quiz; }
-    public void setQuiz(Quiz quiz) { this.quiz = quiz; }
 
 }

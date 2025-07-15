@@ -2,10 +2,17 @@ package com.investhoodit.RevisionHub.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
+@Data
 public class QuizDTO {
+
+    @NotBlank(message = "Quiz Id is required")
+    private Long id;
 
     @NotBlank(message = "Title is required")
     private String title;
@@ -16,14 +23,11 @@ public class QuizDTO {
     @NotEmpty(message = "Questions list cannot be empty")
     private List<QuestionDTO> questions;
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getSubjectId() { return subjectId; }
-    public void setSubjectId(String subjectId) { this.subjectId = subjectId; }
-    public List<QuestionDTO> getQuestions() { return questions; }
-    public void setQuestions(List<QuestionDTO> questions) { this.questions = questions; }
-
+    @Data
     public static class QuestionDTO {
+        @NotBlank(message = "Question Id is required")
+        private Long questionId;
+
         @NotBlank(message = "Question text is required")
         private String questionText;
 
@@ -33,11 +37,5 @@ public class QuizDTO {
         @NotBlank(message = "Correct answer is required")
         private String correctAnswer;
 
-        public String getQuestionText() { return questionText; }
-        public void setQuestionText(String questionText) { this.questionText = questionText; }
-        public List<String> getOptions() { return options; }
-        public void setOptions(List<String> options) { this.options = options; }
-        public String getCorrectAnswer() { return correctAnswer; }
-        public void setCorrectAnswer(String correctAnswer) { this.correctAnswer = correctAnswer; }
     }
 }
