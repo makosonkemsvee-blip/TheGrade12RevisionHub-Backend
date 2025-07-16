@@ -14,11 +14,11 @@ public class UserPaperPerformance {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "paper_id", nullable = false)
+    @JoinColumn(name = "paper_id")
     private DigitizedQuestionPaper paper;
 
     private int score;

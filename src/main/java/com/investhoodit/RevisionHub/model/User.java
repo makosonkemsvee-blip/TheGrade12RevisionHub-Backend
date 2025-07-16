@@ -46,9 +46,6 @@ public class User {
     @JoinColumn(name = "settings_email")
     private Settings settings;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<UserPaperPerformance> paperPerformances = new ArrayList<>();
-
     public boolean isFirstLogin() {
         return firstLogin;
     }

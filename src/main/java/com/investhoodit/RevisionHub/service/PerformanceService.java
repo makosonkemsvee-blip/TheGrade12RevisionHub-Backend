@@ -1,5 +1,6 @@
 package com.investhoodit.RevisionHub.service;
 
+import com.investhoodit.RevisionHub.dto.PerformanceRequest;
 import com.investhoodit.RevisionHub.model.DigitizedQuestionPaper;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.model.UserPaperPerformance;
@@ -11,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,48 +21,51 @@ public class PerformanceService {
     private final UserPaperPerformanceRepository performanceRepository;
     private final UserRepository userRepository;
     private final DigitizedQuestionPaperRepository paperRepository;
-    private final JwtUtil jwtUtil;
 
     public PerformanceService(UserPaperPerformanceRepository performanceRepository,
                               UserRepository userRepository,
-                              DigitizedQuestionPaperRepository paperRepository, JwtUtil jwtUtil) {
+                              DigitizedQuestionPaperRepository paperRepository) {
         this.performanceRepository = performanceRepository;
         this.userRepository = userRepository;
         this.paperRepository = paperRepository;
-        this.jwtUtil = jwtUtil;
     }
 
-    public UserPaperPerformance recordAttempt(Long userId, Long paperId, int score, int maxScore) {
-        User user = userRepository.findById(userId)
+    public UserPaperPerformance recordAttempt(PerformanceRequest request) {
+        User user = userRepository.findByEmail(
+                SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        DigitizedQuestionPaper paper = paperRepository.findById(paperId)
+        DigitizedQuestionPaper paper = paperRepository.findById(request.getPaperId())
                 .orElseThrow(() -> new EntityNotFoundException("Paper not found"));
+        UserPaperPerformance performance;
+        DecimalFormat df = new DecimalFormat("#.##");
+        Double average;
 
-        UserPaperPerformance performance = new UserPaperPerformance();
-        performance.setUser(user);
-        performance.setPaper(paper);
-        performance.setScore(score);
-        performance.setMaxScore(maxScore);
-        performance.setAttemptDate(LocalDateTime.now());
+        if (performanceRepository.existsByUserIdAndPaperId(user.getId(), request.getPaperId())) {
+            performance = performanceRepository.findByUserIdAndPaperId(user.getId(), request.getPaperId());
+            performance.setScore(request.getScore());
+            performance.setMaxScore(request.getMaxScore());
+            performance.setHighestScore(performance.getHighestScore() > request.getScore()?performance.getHighestScore():request.getScore());
+            average = (performance.getAverageScore() * performance.getAttempts() + request.getScore()) / (performance.getAttempts() + 1);
+            performance.setAverageScore(Double.parseDouble(df.format(average)));
+            performance.setAttempts(performance.getAttempts() + 1);
+        } else {
+            performance = new UserPaperPerformance();
+            performance.setUser(user);
+            performance.setPaper(paper);
+            performance.setScore(request.getScore());
+            performance.setMaxScore(request.getMaxScore());
+            performance.setAttemptDate(LocalDateTime.now());
 
-        // Calculate aggregates
-        List<UserPaperPerformance> allAttempts = performanceRepository.findByUserIdAndPaperId(userId, paperId);
-        performance.setAttempts(allAttempts.size() + 1);
-
-        int highest = performanceRepository.findHighestScore(userId, paperId)
-                .orElse(0);
-        performance.setHighestScore(Math.max(highest, score));
-
-        double average = performanceRepository.findAverageScore(userId, paperId)
-                .orElse(0.0);
-        performance.setAverageScore((average * allAttempts.size() + score) / (allAttempts.size() + 1));
-
+            performance.setAttempts(1);
+            performance.setHighestScore(request.getScore());
+            performance.setAverageScore(100);
+        }
         return performanceRepository.save(performance);
     }
 
-    public List<UserPaperPerformance> getUserPerformance(Long userId) {
-        return performanceRepository.findByUserId(userId);
+    public List<UserPaperPerformance> getUserPerformance() {
+        return performanceRepository.findByUserId(findByToken().getId());
     }
 
     public User findByToken() {
@@ -68,4 +73,5 @@ public class PerformanceService {
                 SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
+
 }

@@ -28,6 +28,4 @@ public class DigitizedQuestionPaper {
     @Column(name = "is_interactive")
     private boolean isInteractive;
 
-    @OneToMany(mappedBy = "paper", cascade = CascadeType.ALL)
-    private List<UserPaperPerformance> performances = new ArrayList<>();
 }

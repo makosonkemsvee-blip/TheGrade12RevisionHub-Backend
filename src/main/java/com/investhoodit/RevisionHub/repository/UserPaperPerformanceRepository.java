@@ -11,7 +11,8 @@ import java.util.Optional;
 public interface UserPaperPerformanceRepository extends JpaRepository<UserPaperPerformance, Long> {
     List<UserPaperPerformance> findByUserId(Long userId);
     List<UserPaperPerformance> findByPaperId(Long paperId);
-    List<UserPaperPerformance> findByUserIdAndPaperId(Long userId, Long paperId);
+    boolean existsByUserIdAndPaperId(Long userId, Long paperId);
+    UserPaperPerformance findByUserIdAndPaperId(Long userId, Long paperId);
 
     @Query("SELECT MAX(p.score) FROM UserPaperPerformance p WHERE p.user.id = :userId AND p.paper.id = :paperId")
     Optional<Integer> findHighestScore(@Param("userId") Long userId, @Param("paperId") Long paperId);

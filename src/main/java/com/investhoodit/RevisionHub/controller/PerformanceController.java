@@ -28,12 +28,7 @@ public class PerformanceController {
             User user = performanceService.findByToken();
 
             // Process request
-            UserPaperPerformance performance = performanceService.recordAttempt(
-                    user.getId(),
-                    request.getPaperId(),
-                    request.getScore(),
-                    request.getMaxScore()
-            );
+            UserPaperPerformance performance = performanceService.recordAttempt(request);
             response.put("success", true);
             response.put("data", performance);
             return ResponseEntity.ok(response);
@@ -44,11 +39,11 @@ public class PerformanceController {
         }
     }
 
-    @GetMapping("/performance/{userId}")
-    public ResponseEntity<Map<String, Object>> getUserPerformance(@PathVariable Long userId) {
+    @GetMapping("/performance")
+    public ResponseEntity<Map<String, Object>> getUserPerformance() {
         Map<String, Object> response = new HashMap<>();
         try {
-            List<UserPaperPerformance> performances = performanceService.getUserPerformance(userId);
+            List<UserPaperPerformance> performances = performanceService.getUserPerformance();
             response.put("success", true);
             response.put("data", performances);
             return ResponseEntity.ok(response);
@@ -58,4 +53,50 @@ public class PerformanceController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+//    @GetMapping("/performance")
+//    public ResponseEntity<ApiResponse<Page<PerformanceDTO>>> getPerformance(
+//            @RequestParam Long userId,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "20") int size,
+//            @RequestParam(required = false) String subjectName,
+//            @RequestParam(required = false) String activityType,
+//            @RequestParam(required = false) String startDate,
+//            @RequestParam(required = false) String endDate
+//    ) {
+//        try {
+//            LocalDate parsedStartDate = startDate != null ? LocalDate.parse(startDate) : null;
+//            LocalDate parsedEndDate = endDate != null ? LocalDate.parse(endDate) : null;
+//
+//            Page<PerformanceDTO> performancePage = performanceService.getPerformanceByFilters(
+//                    userId,
+//                    subjectName,
+//                    activityType,
+//                    parsedStartDate,
+//                    parsedEndDate,
+//                    page,
+//                    size
+//            );
+//            ApiResponse<Page<PerformanceDTO>> response = new ApiResponse<>(
+//                    "Performance data retrieved successfully",
+//                    true,
+//                    performancePage
+//            );
+//            return ResponseEntity.ok(response);
+//        } catch (DateTimeParseException e) {
+//            ApiResponse<Page<PerformanceDTO>> response = new ApiResponse<>(
+//                    "Invalid date format: " + e.getMessage(),
+//                    false,
+//                    null
+//            );
+//            return ResponseEntity.badRequest().body(response);
+//        } catch (Exception e) {
+//            ApiResponse<Page<PerformanceDTO>> response = new ApiResponse<>(
+//                    "An error occurred while retrieving performance data: " + e.getMessage(),
+//                    false,
+//                    null
+//            );
+//            return ResponseEntity.status(500).body(response);
+//        }
+//    }
 }
