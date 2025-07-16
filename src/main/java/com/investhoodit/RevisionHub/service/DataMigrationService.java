@@ -64,11 +64,29 @@ public class DataMigrationService implements CommandLineRunner {
             SubjectMastery mastery = new SubjectMastery();
             mastery.setUserId(userEmail);
             mastery.setSubjectName(us.getSubject().getSubjectName());
-            mastery.setQuizMarks(null);
-            mastery.setExamMarks(null);
+            mastery.setQuizMarks(null); // Initialize as null, update if data exists later
+            mastery.setExamMarks(null); // Initialize as null, update if data exists later
+            // Calculate progress based on available marks (placeholder logic)
+            double progress = calculateProgress(null, null); // Update with actual marks if available
+            mastery.setProgress(progress);
             subjectMasteryRepository.save(mastery);
             System.out.println("Saved mastery for subject: " + us.getSubject().getSubjectName() + " for user: " + userEmail);
         }
         System.out.println("Migration completed for " + userSubjects.size() + " subjects of user " + userEmail);
+    }
+
+    private double calculateProgress(Integer quizMarks, Integer examMarks) {
+        if (quizMarks == null && examMarks == null) {
+            return 0.0; // No data, return 0%
+        }
+        if (quizMarks == null) {
+            return examMarks != null ? (examMarks.doubleValue() / 100.0) * 100.0 : 0.0;
+        }
+        if (examMarks == null) {
+            return (quizMarks.doubleValue() / 100.0) * 100.0;
+        }
+        // Average of quiz and exam marks, scaled to 0-100
+        double average = (quizMarks.doubleValue() + examMarks.doubleValue()) / 2.0;
+        return Math.min(Math.max(average, 0.0), 100.0); // Clamp to 0-100
     }
 }

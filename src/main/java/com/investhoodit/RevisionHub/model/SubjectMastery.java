@@ -21,6 +21,10 @@ public class SubjectMastery {
     @Column(name = "exam_marks")
     private Integer examMarks;
 
+    @Column(name = "progress", nullable = false)
+    private double progress = 0.0; // Default to 0.0, updated during migration
+
+
     // Getters, setters, constructors
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -32,4 +36,7 @@ public class SubjectMastery {
     public void setQuizMarks(Integer quizMarks) { this.quizMarks = quizMarks; }
     public Integer getExamMarks() { return examMarks; }
     public void setExamMarks(Integer examMarks) { this.examMarks = examMarks; }
+
+    public double getProgress() { return progress; }
+    public void setProgress(double progress) { this.progress = progress; }
 }
