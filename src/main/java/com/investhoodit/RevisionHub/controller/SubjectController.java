@@ -2,8 +2,12 @@ package com.investhoodit.RevisionHub.controller;
 
 import com.investhoodit.RevisionHub.dto.SubjectDTO;
 import com.investhoodit.RevisionHub.model.ApiResponse;
+import com.investhoodit.RevisionHub.model.Subject;
 import com.investhoodit.RevisionHub.model.UserSubjects;
+import com.investhoodit.RevisionHub.repository.SubjectRepository;
 import com.investhoodit.RevisionHub.service.AddDeleteSubjectService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +19,14 @@ import java.util.List;
 @RequestMapping("/user")
 public class SubjectController {
 
-    private final AddDeleteSubjectService addDeleteSubjectService;
+    private static final Logger logger = LoggerFactory.getLogger(SubjectController.class);
 
-    public SubjectController(AddDeleteSubjectService addDeleteSubjectService) {
+    private final AddDeleteSubjectService addDeleteSubjectService;
+    private final SubjectRepository subjectRepository;
+
+    public SubjectController(AddDeleteSubjectService addDeleteSubjectService, SubjectRepository subjectRepository) {
         this.addDeleteSubjectService = addDeleteSubjectService;
+        this.subjectRepository = subjectRepository;
     }
 
     @PostMapping("/add-subject")
@@ -78,6 +86,86 @@ public class SubjectController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @GetMapping("/api/subjects")
+    public ResponseEntity<ApiResponse<List<String>>> getSubjects() {
+        try {
+            List<String> subjects = addDeleteSubjectService.allSubjects();
+            if (!subjects.isEmpty()) {
+                ApiResponse<List<String>> response = new ApiResponse<>(
+                        "Subjects retrieved successfully",
+                        true,
+                        subjects
+                );
+                return ResponseEntity.ok().body(response);
+            } else {
+                ApiResponse<List<String>> response = new ApiResponse<>(
+                        "Error while fetching subjects.",
+                        false,
+                        null
+                );
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            ApiResponse<List<String>> response = new ApiResponse<>(
+                    e.getMessage(),
+                    false,
+                    null
+            );
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+//    @GetMapping("/api/subjects")
+//    public ResponseEntity<ApiResponse<List<Subject>>> getSubjects() {
+//        try {
+//            List<Subject> subjects = subjectRepository.findAll();
+//            if (!subjects.isEmpty()) {
+//                ApiResponse<List<Subject>> response = new ApiResponse<>(
+//                        "Subjects retrieved successfully",
+//                        true,
+//                        subjects
+//                );
+//                return ResponseEntity.ok().body(response);
+//            } else {
+//                ApiResponse<List<Subject>> response = new ApiResponse<>(
+//                        "Error while fetching subjects.",
+//                        false,
+//                        null
+//                );
+//                return ResponseEntity.badRequest().body(response);
+//            }
+//        } catch (Exception e) {
+//            ApiResponse<List<Subject>> response = new ApiResponse<>(
+//                    e.getMessage(),
+//                    false,
+//                    null
+//            );
+//            return ResponseEntity.badRequest().body(response);
+//        }
+//    }
+
+//    @GetMapping("/api/subjects")
+//    public ResponseEntity<ApiResponse<List<Subject>>> getSubjects() {
+//        try {
+//            List<Subject> subjects = subjectRepository.findAll();
+//            logger.info("Fetched {} subjects from /api/subjects", subjects.size());
+//            ApiResponse<List<Subject>> response = new ApiResponse<>(
+//                    "Subjects retrieved successfully",
+//                    true,
+//                    subjects
+//            );
+//            return ResponseEntity.ok().body(response);
+//        } catch (Exception e) {
+//            logger.error("Error retrieving subjects from /api/subjects: {}", e.getMessage(), e);
+//            ApiResponse<List<Subject>> response = new ApiResponse<>(
+//                    "Error retrieving subjects: " + e.getMessage(),
+//                    false,
+//                    null
+//            );
+//            return ResponseEntity.badRequest().body(response);
+//        }
+//    }
 
     @GetMapping("/enrolled-subjects")
     @PreAuthorize("isAuthenticated()")
