@@ -1,10 +1,8 @@
-/* src/main/java/com/investhoodit/RevisionHub/service/ResourcesService.java */
 package com.investhoodit.RevisionHub.service;
 
 import com.investhoodit.RevisionHub.model.Resources;
 import com.investhoodit.RevisionHub.model.Subject;
 import com.investhoodit.RevisionHub.repository.ResourceRepository;
-import com.investhoodit.RevisionHub.repository.SubjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,12 +17,10 @@ import java.util.List;
 @Service
 public class ResourcesService {
     private final ResourceRepository resourceRepository;
-    private final SubjectRepository subjectRepository;
     private final String uploadDir = "uploads/";
 
-    public ResourcesService(ResourceRepository resourceRepository, SubjectRepository subjectRepository) {
+    public ResourcesService(ResourceRepository resourceRepository) {
         this.resourceRepository = resourceRepository;
-        this.subjectRepository = subjectRepository;
         // Create uploads directory if it doesn't exist
         File dir = new File(uploadDir);
         if (!dir.exists()) {
@@ -32,16 +28,10 @@ public class ResourcesService {
         }
     }
 
-    public Resources uploadResource(String subjectName, MultipartFile file) throws IOException {
-        if (subjectName == null || subjectName.isEmpty() || file == null || file.isEmpty()) {
+    public Resources uploadResource(Subject subjectName, MultipartFile file) throws IOException {
+        if (subjectName == null || file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Subject and file are required.");
         }
-
-        Subject subject = subjectRepository.findById(subjectName)
-                .orElseGet(() -> {
-                    Subject newSubject = new Subject(subjectName);
-                    return subjectRepository.save(newSubject);
-                });
 
         String[] allowedTypes = {"application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"};
         boolean isValidType = false;
@@ -63,7 +53,7 @@ public class ResourcesService {
         resource.setTitle(file.getOriginalFilename());
         resource.setUrl("/uploads/" + fileName);
         resource.setDescription("Resource for " + subjectName);
-        resource.setSubject(subject);
+        resource.setSubject(subjectName);
         resource.setFileName(file.getOriginalFilename());
         resource.setFileType(file.getContentType());
         resource.setUploadedAt(LocalDateTime.now());
