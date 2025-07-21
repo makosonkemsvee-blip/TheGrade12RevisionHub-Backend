@@ -25,7 +25,6 @@ public class UserPaperPerformance {
     private int maxScore;
     private LocalDateTime attemptDate;
 
-    // Calculated fields
     private int attempts;
     private double averageScore;
     private int highestScore;

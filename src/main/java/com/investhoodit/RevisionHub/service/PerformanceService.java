@@ -7,7 +7,6 @@ import com.investhoodit.RevisionHub.model.UserPaperPerformance;
 import com.investhoodit.RevisionHub.repository.DigitizedQuestionPaperRepository;
 import com.investhoodit.RevisionHub.repository.UserPaperPerformanceRepository;
 import com.investhoodit.RevisionHub.repository.UserRepository;
-import com.investhoodit.RevisionHub.util.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -44,7 +43,6 @@ public class PerformanceService {
         if (performanceRepository.existsByUserIdAndPaperId(user.getId(), request.getPaperId())) {
             performance = performanceRepository.findByUserIdAndPaperId(user.getId(), request.getPaperId());
             performance.setScore(request.getScore());
-            performance.setMaxScore(request.getMaxScore());
             performance.setHighestScore(performance.getHighestScore() > request.getScore()?performance.getHighestScore():request.getScore());
             average = (performance.getAverageScore() * performance.getAttempts() + request.getScore()) / (performance.getAttempts() + 1);
             performance.setAverageScore(Double.parseDouble(df.format(average)));
@@ -54,12 +52,12 @@ public class PerformanceService {
             performance.setUser(user);
             performance.setPaper(paper);
             performance.setScore(request.getScore());
-            performance.setMaxScore(request.getMaxScore());
+            performance.setMaxScore(100);
             performance.setAttemptDate(LocalDateTime.now());
 
             performance.setAttempts(1);
             performance.setHighestScore(request.getScore());
-            performance.setAverageScore(100);
+            performance.setAverageScore(0);
         }
         return performanceRepository.save(performance);
     }
