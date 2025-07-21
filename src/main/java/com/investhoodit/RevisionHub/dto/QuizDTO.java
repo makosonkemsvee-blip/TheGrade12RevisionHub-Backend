@@ -40,7 +40,6 @@ public class QuizDTO {
         private String correctAnswer;
     }
 
-    // New DTO for quiz creation
     @Data
     public static class CreateQuizDTO {
         @NotBlank(message = "Title is required")
