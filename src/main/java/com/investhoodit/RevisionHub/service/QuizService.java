@@ -5,6 +5,7 @@ import com.investhoodit.RevisionHub.dto.QuizResultDTO;
 import com.investhoodit.RevisionHub.dto.QuizSubmissionDTO;
 import com.investhoodit.RevisionHub.model.*;
 import com.investhoodit.RevisionHub.repository.QuizRepository;
+import com.investhoodit.RevisionHub.repository.SubjectRepository;
 import com.investhoodit.RevisionHub.repository.UserRepository;
 import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,11 +21,13 @@ public class QuizService {
     private final QuizRepository quizRepository;
     private final UserSubjectsRepository userSubjectsRepository;
     private final UserRepository userRepository;
+    private final SubjectRepository subjectRepository;
 
-    public QuizService(QuizRepository quizRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
+    public QuizService(QuizRepository quizRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, SubjectRepository subjectRepository) {
         this.quizRepository = quizRepository;
         this.userSubjectsRepository = userSubjectsRepository;
         this.userRepository = userRepository;
+        this.subjectRepository = subjectRepository;
     }
 
     public List<QuizDTO> findQuizzesForUser() {
@@ -52,7 +55,8 @@ public class QuizService {
             QuizDTO dto = new QuizDTO();
             dto.setId(quiz.getId());
             dto.setTitle(quiz.getTitle());
-            dto.setSubjectId(quiz.getSubject().getSubjectName());
+            dto.setDescription(quiz.getDescription());
+            dto.setSubject(quiz.getSubject().getSubjectName());
             List<QuizDTO.QuestionDTO> questionDTOs = quiz.getQuestions().stream().map(question -> {
                 QuizDTO.QuestionDTO questionDTO = new QuizDTO.QuestionDTO();
                 questionDTO.setQuestionId(question.getId());
@@ -88,7 +92,7 @@ public class QuizService {
         QuizDTO dto = new QuizDTO();
         dto.setId(quiz.getId());
         dto.setTitle(quiz.getTitle());
-        dto.setSubjectId(quiz.getSubject().getSubjectName());
+        dto.setSubject(quiz.getSubject().getSubjectName());
         List<QuizDTO.QuestionDTO> questionDTOs = quiz.getQuestions().stream().map(question -> {
             QuizDTO.QuestionDTO questionDTO = new QuizDTO.QuestionDTO();
             questionDTO.setQuestionId(question.getId());
@@ -145,5 +149,29 @@ public class QuizService {
         result.setTotalQuestions(totalQuestions);
         System.out.println("Submission processed: Score=" + score + "/" + totalQuestions);
         return result;
+    }
+
+    public Quiz createQuiz(QuizDTO.CreateQuizDTO quizDTO) {
+        Quiz quiz = new Quiz();
+        quiz.setTitle(quizDTO.getTitle());
+        quiz.setDescription(quizDTO.getDescription());
+        quiz.setSubject(subjectRepository.findBySubjectName(quizDTO.getSubject())
+                .orElseThrow(() -> new IllegalArgumentException("Subject not found: " + quizDTO.getSubject())));
+        List<Question> questions = quizDTO.getQuestions().stream().map(q -> {
+            Question question = new Question();
+            question.setQuestionText(q.getQuestionText());
+            question.setOptions(q.getOptions());
+            question.setCorrectAnswer(q.getCorrectAnswer());
+            question.setQuiz(quiz);
+            return question;
+        }).collect(Collectors.toList());
+        quiz.setQuestions(questions);
+        return quizRepository.save(quiz); // Saves quiz and generates IDs
+    }
+
+    public void deleteQuiz(Long id) {
+        Quiz quiz = quizRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found: " + id));
+        quizRepository.delete(quiz);
     }
 }

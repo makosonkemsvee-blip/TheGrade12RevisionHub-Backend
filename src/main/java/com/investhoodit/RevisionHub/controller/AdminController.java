@@ -12,6 +12,7 @@ import com.investhoodit.RevisionHub.repository.QuizRepository;
 import com.investhoodit.RevisionHub.repository.SubjectRepository;
 import com.investhoodit.RevisionHub.service.EmailService;
 import com.investhoodit.RevisionHub.service.QuestionPaperService;
+import com.investhoodit.RevisionHub.service.QuizService;
 import com.investhoodit.RevisionHub.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -37,15 +38,17 @@ public class AdminController {
     private final SubjectRepository subjectRepository;
     private final EmailService emailService;
     private final QuizRepository quizRepository;
+    private final QuizService quizService;
 
     public AdminController(UserService userService,
                            QuestionPaperService questionPaperService,
-                           SubjectRepository subjectRepository, EmailService emailService, QuizRepository quizRepository) {
+                           SubjectRepository subjectRepository, EmailService emailService, QuizRepository quizRepository, QuizService quizService) {
         this.userService = userService;
         this.questionPaperService = questionPaperService;
         this.subjectRepository = subjectRepository;
         this.emailService = emailService;
         this.quizRepository = quizRepository;
+        this.quizService = quizService;
     }
 
     @GetMapping("/students")
@@ -94,24 +97,23 @@ public class AdminController {
         return stats;
     }
 
-//    @PostMapping("/quizzes")
-//    public ResponseEntity<String> createQuiz(@Valid @RequestBody QuizDTO quizDTO, BindingResult result) {
-//        if (result.hasErrors()) {
-//            String errors = result.getFieldErrors().stream()
-//                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
-//                    .collect(Collectors.joining(", "));
-//            return ResponseEntity.badRequest().body("Validation failed: " + errors);
-//        }
-//        try {
-//            Quiz quiz = questionPaperService.createQuiz(quizDTO);
-//            return ResponseEntity.ok("Quiz created successfully with ID: " + quiz.getId());
-//        } catch (IllegalArgumentException e) {
-//            return ResponseEntity.badRequest().body(e.getMessage());
-//        }
-//    }
+    @DeleteMapping("/quizzes/{id}")
+    public ResponseEntity<String> deleteQuiz(@PathVariable Long id) {
+        try {
+            quizService.deleteQuiz(id);
+            return ResponseEntity.ok("Quiz deleted successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Invalid quiz ID: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error deleting quiz: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete quiz: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/quizzes")
-    public ResponseEntity<String> createQuiz(@Valid @RequestBody QuizDTO quizDTO, BindingResult result) {
+    public ResponseEntity<String> createQuiz(@Valid @RequestBody QuizDTO.CreateQuizDTO quizDTO, BindingResult result) {
         if (result.hasErrors()) {
             String errors = result.getFieldErrors().stream()
                     .map(error -> error.getField() + ": " + error.getDefaultMessage())
@@ -119,8 +121,8 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Validation failed: " + errors);
         }
         try {
-            Quiz quiz = questionPaperService.createQuiz(quizDTO);
-            return ResponseEntity.ok("Quiz created successfully with ID: " + quiz.getId());
+            Quiz quiz = quizService.createQuiz(quizDTO);
+            return ResponseEntity.ok("Quiz created successfully for : " + quiz.getSubject());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid data: " + e.getMessage());
         } catch (Exception e) {
@@ -136,8 +138,10 @@ public class AdminController {
         List<Quiz> quizzes = quizRepository.findAll();
         List<QuizDTO> quizDTOs = quizzes.stream().map(quiz -> {
             QuizDTO dto = new QuizDTO();
+            dto.setId(quiz.getId());
             dto.setTitle(quiz.getTitle());
-            dto.setSubjectId(quiz.getSubject().getSubjectName());
+            dto.setDescription(quiz.getDescription());
+            dto.setSubject(quiz.getSubject().getSubjectName());
             List<QuizDTO.QuestionDTO> questionDTOs = quiz.getQuestions().stream().map(question -> {
                 QuizDTO.QuestionDTO questionDTO = new QuizDTO.QuestionDTO();
                 questionDTO.setQuestionText(question.getQuestionText());

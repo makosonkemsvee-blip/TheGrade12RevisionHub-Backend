@@ -21,6 +21,9 @@ public class Quiz {
     @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
+    private String description;
+
     @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)
     private Subject subject;

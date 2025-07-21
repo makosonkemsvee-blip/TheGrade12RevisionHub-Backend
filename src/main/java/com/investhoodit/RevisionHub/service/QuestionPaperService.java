@@ -108,22 +108,7 @@ public class QuestionPaperService {
         return questionPaperRepository.findById(id).orElseThrow(() -> new RuntimeException("Question paper not found"));
     }
 
-    public Quiz createQuiz(QuizDTO quizDTO) {
-        Subject subject = subjectRepository.findById(quizDTO.getSubjectId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid subject ID"));
 
-        Quiz quiz = new Quiz();
-        quiz.setTitle(quizDTO.getTitle());
-        quiz.setSubject(subject);
-
-        // Convert QuestionDTOs to Question entities
-        List<Question> questions = quizDTO.getQuestions().stream()
-                .map(dto -> new Question(dto.getQuestionText(), dto.getOptions(), dto.getCorrectAnswer(), quiz))
-                .collect(Collectors.toList());
-        quiz.setQuestions(questions);
-
-        return quizRepository.save(quiz);
-    }
 
     public double calculateScore(Long quizId, Map<Long, String> userAnswers) {
         Optional<Quiz> quizOptional = quizRepository.findById(quizId);
