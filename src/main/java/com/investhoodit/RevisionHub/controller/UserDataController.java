@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -28,12 +27,16 @@ public class UserDataController {
         try {
             List<CoursePerformance> performance = performanceOverviewService.getPerformanceOverview();
             ApiResponse<List<CoursePerformance>> response = new ApiResponse<>(
-                    true, "Performance overview fetched successfully", performance
+                    "Performance overview fetched successfully", // message first
+                    true, // success second
+                    performance // data third
             );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             ApiResponse<List<CoursePerformance>> response = new ApiResponse<>(
-                    false, "Failed to fetch performance overview: " + e.getMessage(), null
+                    "Failed to fetch performance overview: " + e.getMessage(), // message first
+                    false, // success second
+                    null // data third
             );
             return ResponseEntity.badRequest().body(response);
         }

@@ -26,24 +26,24 @@ public class SubjectMasteryController {
             List<SubjectMasteryDTO> masteryData = subjectMasteryService.getSubjectMastery();
             if (!masteryData.isEmpty()) {
                 ApiResponse<List<SubjectMasteryDTO>> response = new ApiResponse<>(
-                        true,
-                        "Subject mastery data retrieved successfully.",
-                        masteryData
+                        "Subject mastery data retrieved successfully.", // message first
+                        true, // success second
+                        masteryData // data third
                 );
                 return ResponseEntity.ok().body(response);
             } else {
                 ApiResponse<List<SubjectMasteryDTO>> response = new ApiResponse<>(
-                        false,
-                        "No mastery data available.",
-                        null
+                        "No mastery data available.", // message first
+                        false, // success second
+                        null // data third
                 );
                 return ResponseEntity.ok().body(response);
             }
         } catch (Exception e) {
             ApiResponse<List<SubjectMasteryDTO>> response = new ApiResponse<>(
-                    false,
-                    "Failed to fetch subject mastery data: " + e.getMessage(),
-                    null
+                    "Failed to fetch subject mastery data: " + e.getMessage(), // message first
+                    false, // success second
+                    null // data third
             );
             return ResponseEntity.badRequest().body(response);
         }
