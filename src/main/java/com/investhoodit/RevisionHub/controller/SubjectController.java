@@ -4,6 +4,7 @@ import com.investhoodit.RevisionHub.dto.SubjectDTO;
 import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.model.UserSubjects;
 import com.investhoodit.RevisionHub.service.AddDeleteSubjectService;
+import com.investhoodit.RevisionHub.service.DataMigrationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +16,13 @@ import java.util.List;
 @RequestMapping("/user")
 public class SubjectController {
 
+    //private final AddDeleteSubjectService addSubjectService;
+    private final DataMigrationService dataMigrationService;
     private final AddDeleteSubjectService addDeleteSubjectService;
 
-    public SubjectController(AddDeleteSubjectService addDeleteSubjectService) {
+    public SubjectController(AddDeleteSubjectService addDeleteSubjectService, DataMigrationService dataMigrationService) {
         this.addDeleteSubjectService = addDeleteSubjectService;
+        this.dataMigrationService = dataMigrationService;
     }
 
     @PostMapping("/add-subject")

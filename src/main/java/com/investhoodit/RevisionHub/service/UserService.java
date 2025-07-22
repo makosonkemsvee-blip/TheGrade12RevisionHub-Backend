@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -87,6 +88,9 @@ public class UserService {
 
     }
 
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email); // Assumes UserRepository has this method
+     }
     public long countStudents(){
         return userRepository.countByRole("STUDENT");
     }

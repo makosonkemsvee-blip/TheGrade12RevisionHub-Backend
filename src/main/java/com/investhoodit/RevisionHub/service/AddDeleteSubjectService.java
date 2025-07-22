@@ -21,12 +21,14 @@ public class AddDeleteSubjectService {
 	private final SubjectRepository subjectRepository;
 	private final UserSubjectsRepository userSubjectsRepository;
 	private final UserRepository userRepository;
+	private final DataMigrationService dataMigrationService;
 
-	public AddDeleteSubjectService(SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository) {
+	public AddDeleteSubjectService(SubjectRepository subjectRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, DataMigrationService dataMigrationService) {
 		this.subjectRepository = subjectRepository;
 		this.userSubjectsRepository = userSubjectsRepository;
 		this.userRepository = userRepository;
-	}
+        this.dataMigrationService = dataMigrationService;
+    }
 
 	public void autoAddSubject() {
 		List<String> subjectNames = Arrays.asList(
@@ -86,6 +88,9 @@ public class AddDeleteSubjectService {
 		userSubjects.setSubject(subject);
 		userSubjects.setCreatedAt(new Date());
 		userSubjectsRepository.save(userSubjects);
+
+		//Trigger migration for the updated user
+		dataMigrationService.migrateSubjectsForUser(user);
 		return true;
 	}
 
@@ -112,6 +117,9 @@ public class AddDeleteSubjectService {
 
 		// Delete the UserSubjects record
 		userSubjectsRepository.deleteByUserAndSubject(user, subject);
+
+		//Trigger migration to update subject mastery
+		dataMigrationService.migrateSubjectsForUser(user);
 		return true;
 	}
 
