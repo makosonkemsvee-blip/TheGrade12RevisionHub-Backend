@@ -3,7 +3,7 @@ package com.investhoodit.RevisionHub.controller;
 import com.investhoodit.RevisionHub.dto.PerformanceRequest;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.model.UserPaperPerformance;
-import com.investhoodit.RevisionHub.service.PerformanceService;
+import com.investhoodit.RevisionHub.service.UserPaperPerformanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
@@ -12,10 +12,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
-public class PerformanceController {
-    private final PerformanceService performanceService;
+public class UserPaperPerformanceController {
+    private final UserPaperPerformanceService performanceService;
 
-    public PerformanceController(PerformanceService performanceService) {
+    public UserPaperPerformanceController(UserPaperPerformanceService performanceService) {
         this.performanceService = performanceService;
     }
 

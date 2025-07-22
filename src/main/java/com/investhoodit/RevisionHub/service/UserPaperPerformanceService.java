@@ -16,14 +16,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class PerformanceService {
+public class UserPaperPerformanceService {
     private final UserPaperPerformanceRepository performanceRepository;
     private final UserRepository userRepository;
     private final DigitizedQuestionPaperRepository paperRepository;
 
-    public PerformanceService(UserPaperPerformanceRepository performanceRepository,
-                              UserRepository userRepository,
-                              DigitizedQuestionPaperRepository paperRepository) {
+    public UserPaperPerformanceService(UserPaperPerformanceRepository performanceRepository, UserRepository userRepository, DigitizedQuestionPaperRepository paperRepository) {
         this.performanceRepository = performanceRepository;
         this.userRepository = userRepository;
         this.paperRepository = paperRepository;
@@ -31,7 +29,7 @@ public class PerformanceService {
 
     public UserPaperPerformance recordAttempt(PerformanceRequest request) {
         User user = userRepository.findByEmail(
-                SecurityContextHolder.getContext().getAuthentication().getName())
+                        SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         DigitizedQuestionPaper paper = paperRepository.findById(request.getPaperId())
@@ -68,7 +66,7 @@ public class PerformanceService {
 
     public User findByToken() {
         return userRepository.findByEmail(
-                SecurityContextHolder.getContext().getAuthentication().getName())
+                        SecurityContextHolder.getContext().getAuthentication().getName())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
