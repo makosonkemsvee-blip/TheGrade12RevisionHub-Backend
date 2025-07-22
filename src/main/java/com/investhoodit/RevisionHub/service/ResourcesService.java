@@ -8,57 +8,102 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ResourcesService {
     private final ResourceRepository resourceRepository;
-    private final String uploadDir = "uploads/";
+    private final String uploadDir = "Uploads/";
 
     public ResourcesService(ResourceRepository resourceRepository) {
         this.resourceRepository = resourceRepository;
-        // Create uploads directory if it doesn't exist
         File dir = new File(uploadDir);
         if (!dir.exists()) {
-            dir.mkdirs();
+            System.out.println("Creating Uploads directory at: " + dir.getAbsolutePath());
+            boolean created = dir.mkdirs();
+            if (!created) {
+                System.err.println("Failed to create Uploads directory");
+            }
         }
     }
 
-    public Resources uploadResource(Subject subjectName, MultipartFile file) throws IOException {
-        if (subjectName == null || file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Subject and file are required.");
+    public Resources uploadResource(String subjectName, String resourceType, String title,
+                                    String description, String tags, String link, MultipartFile file)
+            throws IOException {
+        if (subjectName == null || subjectName.isEmpty()) {
+            throw new IllegalArgumentException("Subject is required.");
         }
-
-        String[] allowedTypes = {"application/pdf", "image/png", "image/jpeg", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"};
-        boolean isValidType = false;
-        for (String type : allowedTypes) {
-            if (type.equals(file.getContentType())) {
-                isValidType = true;
-                break;
-            }
+        if (resourceType == null || !Arrays.asList("file", "link").contains(resourceType)) {
+            throw new IllegalArgumentException("Invalid resource type.");
         }
-        if (!isValidType) {
-            throw new IllegalArgumentException("Only PDF, PNG, JPEG, and DOCX files are allowed.");
+        if (title == null || title.isEmpty()) {
+            throw new IllegalArgumentException("Title is required.");
         }
-
-        String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-        Files.write(filePath, file.getBytes());
 
         Resources resource = new Resources();
-        resource.setTitle(file.getOriginalFilename());
-        resource.setUrl("/uploads/" + fileName);
-        resource.setDescription("Resource for " + subjectName);
-        resource.setSubject(subjectName);
-        resource.setFileName(file.getOriginalFilename());
-        resource.setFileType(file.getContentType());
+        resource.setTitle(title);
+        resource.setDescription(description != null ? description : "Resource for " + subjectName);
+        resource.setSubject(new Subject(subjectName));
+        resource.setResourceType(resourceType);
         resource.setUploadedAt(LocalDateTime.now());
 
-        return resourceRepository.save(resource);
+        if (tags != null && !tags.isEmpty()) {
+            List<String> tagList = Arrays.stream(tags.split(","))
+                    .map(String::trim)
+                    .filter(tag -> !tag.isEmpty())
+                    .collect(Collectors.toList());
+            resource.setTags(tagList);
+        }
+
+        if (resourceType.equals("file")) {
+            if (file == null || file.isEmpty()) {
+                throw new IllegalArgumentException("File is required for file resource type.");
+            }
+            String[] allowedTypes = {
+                    "application/pdf",
+                    "image/png",
+                    "image/jpeg",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            };
+            boolean isValidType = Arrays.asList(allowedTypes).contains(file.getContentType());
+            if (!isValidType) {
+                throw new IllegalArgumentException("Only PDF, PNG, JPEG, and DOCX files are allowed.");
+            }
+            String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+            Path filePath = Paths.get(uploadDir + fileName);
+            System.out.println("Saving file to: " + filePath.toAbsolutePath());
+            try {
+                Files.write(filePath, file.getBytes());
+                System.out.println("File saved successfully: " + fileName);
+            } catch (IOException e) {
+                System.err.println("Failed to save file: " + e.getMessage());
+                throw e;
+            }
+            resource.setUrl("/uploads/" + fileName);
+            resource.setFileName(file.getOriginalFilename());
+            resource.setFileType(file.getContentType());
+        } else if (resourceType.equals("link")) {
+            if (link == null || link.isEmpty()) {
+                throw new IllegalArgumentException("Link is required for link resource type.");
+            }
+            try {
+                new URL(link).toURI();
+                resource.setUrl(link);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid URL format.");
+            }
+        }
+
+        Resources savedResource = resourceRepository.save(resource);
+        System.out.println("Saved resource with URL: " + savedResource.getUrl());
+        return savedResource;
     }
 
     public List<Resources> getResources() {
