@@ -94,7 +94,7 @@ public class UserService {
         return userRepository.findByEmail(email); // Assumes UserRepository has this method
      }
     public long countStudents(){
-        return userRepository.countByRole("STUDENT");
+        return userRepository.countByRole("USER");
     }
 
 

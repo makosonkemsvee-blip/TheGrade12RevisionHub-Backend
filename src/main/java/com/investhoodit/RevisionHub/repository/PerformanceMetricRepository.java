@@ -3,12 +3,14 @@ package com.investhoodit.RevisionHub.repository;
 import com.investhoodit.RevisionHub.model.PerformanceMetric;
 import com.investhoodit.RevisionHub.model.Subject;
 import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.model.UserPaperPerformance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface PerformanceMetricRepository extends JpaRepository<PerformanceMetric, Long> {
@@ -27,4 +29,10 @@ public interface PerformanceMetricRepository extends JpaRepository<PerformanceMe
     );
 
     Optional<PerformanceMetric> findByUserAndSubjectAndActivityName(User user, Subject subject, String title);
+
+    boolean existsByUserIdAndActivityId(Long id, Long paperId);
+
+    PerformanceMetric findByUserIdAndActivityId(Long id, Long paperId);
+
+    List<UserPaperPerformance> findByUserId(Long id);
 }
