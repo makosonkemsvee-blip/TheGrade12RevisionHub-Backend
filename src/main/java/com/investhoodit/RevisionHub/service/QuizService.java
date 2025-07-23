@@ -4,15 +4,15 @@ import com.investhoodit.RevisionHub.dto.QuizDTO;
 import com.investhoodit.RevisionHub.dto.QuizResultDTO;
 import com.investhoodit.RevisionHub.dto.QuizSubmissionDTO;
 import com.investhoodit.RevisionHub.model.*;
-import com.investhoodit.RevisionHub.repository.QuizRepository;
-import com.investhoodit.RevisionHub.repository.SubjectRepository;
-import com.investhoodit.RevisionHub.repository.UserRepository;
-import com.investhoodit.RevisionHub.repository.UserSubjectsRepository;
+import com.investhoodit.RevisionHub.repository.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,12 +22,14 @@ public class QuizService {
     private final UserSubjectsRepository userSubjectsRepository;
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
+    private final PerformanceMetricRepository performanceMetricRepository;
 
-    public QuizService(QuizRepository quizRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, SubjectRepository subjectRepository) {
+    public QuizService(QuizRepository quizRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, SubjectRepository subjectRepository, PerformanceMetricRepository performanceMetricRepository) {
         this.quizRepository = quizRepository;
         this.userSubjectsRepository = userSubjectsRepository;
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
+        this.performanceMetricRepository = performanceMetricRepository;
     }
 
     public List<QuizDTO> findQuizzesForUser() {
@@ -142,12 +144,16 @@ public class QuizService {
             }
         }
 
+        double percentage = Math.round((((double) score / totalQuestions) * 100) * 100.0) / 100.0;
+
+        saveQuizSubmission(quizId,quiz.getSubject(), quiz.getTitle(), percentage, user);
+
         QuizResultDTO result = new QuizResultDTO();
         result.setQuizId(quizId);
         result.setQuizTitle(quiz.getTitle());
         result.setScore(score);
         result.setTotalQuestions(totalQuestions);
-        System.out.println("Submission processed: Score=" + score + "/" + totalQuestions);
+        System.out.println("Submission processed: Score=" + percentage + "/" + totalQuestions);
         return result;
     }
 
@@ -173,5 +179,38 @@ public class QuizService {
         Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found: " + id));
         quizRepository.delete(quiz);
+    }
+
+    public void saveQuizSubmission(Long quizId, Subject subject, String title, double score, User user) {
+        // Find existing PerformanceMetric by user, subject, and activityName
+        Optional<PerformanceMetric> existingMetric = performanceMetricRepository
+                .findByUserAndSubjectAndActivityName(user, subject, title);
+
+        PerformanceMetric performance;
+        if (existingMetric.isPresent()) {
+            performance = existingMetric.get();
+            if (score > performance.getScore()) {
+                // Update score and date only if new score is higher
+                performance.setScore(score);
+                performance.setDate(LocalDate.now());
+                System.out.println("Updating quiz submission with higher score for user: " + user.getId() + ", subject: " + subject.getSubjectName() + ", title: " + title + ", new score: " + score);
+            } else {
+                System.out.println("Score not updated (new score " + score + " is not higher than current score " + performance.getScore() + ") for user: " + user.getId() + ", subject: " + subject.getSubjectName() + ", title: " + title);
+                return; // Exit without saving
+            }
+        } else {
+            // Create new record
+            performance = new PerformanceMetric();
+            performance.setUser(user);
+            performance.setSubject(subject);
+            performance.setActivityName(title);
+            performance.setActivityType("Quiz");
+            performance.setActivityId(quizId);
+            performance.setScore(score);
+            performance.setDate(LocalDate.now());
+            System.out.println("Creating new quiz submission for user: " + user.getId() + ", subject: " + subject.getSubjectName() + ", title: " + title);
+        }
+
+        performanceMetricRepository.save(performance);
     }
 }

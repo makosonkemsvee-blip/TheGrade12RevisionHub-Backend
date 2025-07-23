@@ -26,24 +26,27 @@ public class PerformanceMetric {
     @Column(name = "activity_name", nullable = false)
     private String activityName;
 
+    @Column(name = "activity_id", nullable = false)
+    private Long activityId; // lana kutoba i ID yeQuiz or yeDigitized QP
+
     @Column(nullable = false)
     private LocalDate date;
 
     @Column(nullable = false)
-    private int score;
+    private double score;
 
-    @Column(name = "max_score", nullable = false)
-    private int maxScore;
-
-    @Column(name = "time_spent", nullable = false)
-    private int timeSpent;
-
-    private String difficulty;
-
-    @Column(nullable = false)
-    private String status;
-
-    private String comments;
+//    @Column(name = "max_score", nullable = false)
+//    private int maxScore;
+//
+//    @Column(name = "time_spent", nullable = false)
+//    private int timeSpent;
+//
+//    private String difficulty;
+//
+//    @Column(nullable = false)
+//    private String status;
+//
+//    private String comments;
 
     public PerformanceMetric() {
     }

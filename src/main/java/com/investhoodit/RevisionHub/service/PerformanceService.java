@@ -45,12 +45,7 @@ public class PerformanceService {
                 p.getActivityType(),
                 p.getActivityName(),
                 p.getDate(),
-                p.getScore(),
-                p.getMaxScore(),
-                p.getTimeSpent(),
-                p.getDifficulty(),
-                p.getStatus(),
-                p.getComments()
+                p.getScore()
         ));
     }
 }

@@ -1,12 +1,15 @@
 package com.investhoodit.RevisionHub.repository;
 
 import com.investhoodit.RevisionHub.model.PerformanceMetric;
+import com.investhoodit.RevisionHub.model.Subject;
+import com.investhoodit.RevisionHub.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface PerformanceMetricRepository extends JpaRepository<PerformanceMetric, Long> {
     @Query("SELECT p FROM PerformanceMetric p WHERE p.user.id = :userId " +
@@ -22,4 +25,6 @@ public interface PerformanceMetricRepository extends JpaRepository<PerformanceMe
             @Param("endDate") LocalDate endDate,
             Pageable pageable
     );
+
+    Optional<PerformanceMetric> findByUserAndSubjectAndActivityName(User user, Subject subject, String title);
 }
