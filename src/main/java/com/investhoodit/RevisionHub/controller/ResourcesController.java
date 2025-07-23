@@ -94,83 +94,80 @@ public class ResourcesController {
     @GetMapping("/Uploads/view/{filename:.+}")
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
     public ResponseEntity<Resource> viewFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token) {
-        try {
-            File file = new File("Uploads/" + filename);
-            System.out.println("Attempting to serve file: " + file.getAbsolutePath());
-            if (!file.exists()) {
-                System.out.println("File not found: " + file.getAbsolutePath());
-                return ResponseEntity.notFound().build();
-            }
-            Resource resource = new FileSystemResource(file);
-            String contentType = Files.probeContentType(file.toPath());
-            if (contentType == null) {
-                contentType = "application/pdf";
-            }
-            System.out.println("Serving file with content type: " + contentType);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                    .body(resource);
-        } catch (IOException e) {
-            System.out.println("Error serving file: " + e.getMessage());
-            return ResponseEntity.status(500).build();
+        File file = new File("Uploads/" + filename);
+        System.out.println("Attempting to serve file: " + file.getAbsolutePath());
+        if (!file.exists()) {
+            System.out.println("File not found: " + file.getAbsolutePath());
+            return ResponseEntity.notFound().build();
         }
+        Resource resource = new FileSystemResource(file);
+        String contentType = determineContentType(filename);
+        System.out.println("Serving file with content type: " + contentType);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                .body(resource);
     }
 
     @GetMapping("/Uploads/download/{filename:.+}")
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token) {
-        try {
-            File file = new File("Uploads/" + filename);
-            System.out.println("Attempting to download file: " + file.getAbsolutePath());
-            if (!file.exists()) {
-                System.out.println("File not found: " + file.getAbsolutePath());
-                return ResponseEntity.notFound().build();
-            }
-            Resource resource = new FileSystemResource(file);
-            String contentType = Files.probeContentType(file.toPath());
-            if (contentType == null) {
-                contentType = "application/pdf";
-            }
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
-                    .body(resource);
-        } catch (IOException e) {
-            System.out.println("Error downloading file: " + e.getMessage());
-            return ResponseEntity.status(500).build();
+        File file = new File("Uploads/" + filename);
+        System.out.println("Attempting to download file: " + file.getAbsolutePath());
+        if (!file.exists()) {
+            System.out.println("File not found: " + file.getAbsolutePath());
+            return ResponseEntity.notFound().build();
         }
+        Resource resource = new FileSystemResource(file);
+        String contentType = determineContentType(filename);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
+                .body(resource);
     }
 
-    @GetMapping("/uploads/{filename:.+}")
+    @GetMapping("/Uploads/{filename:.+}")
     public ResponseEntity<Resource> serveFile(
             @PathVariable String filename,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
-
-        try {
-            File file = new File("Uploads/" + filename);
-            if (!file.exists()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            Resource resource = new FileSystemResource(file);
-            String contentType = Files.probeContentType(file.toPath());
-            if (contentType == null) {
-                contentType = "application/pdf";
-            }
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType(contentType));
-            headers.set("Accept-Ranges", "bytes");
-            headers.set("Content-Disposition", "inline; filename=\"" + file.getName() + "\"");
-            headers.set("X-Content-Type-Options", "nosniff");
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(resource);
-        } catch (IOException e) {
-            return ResponseEntity.status(500).build();
+        File file = new File("Uploads/" + filename);
+        if (!file.exists()) {
+            return ResponseEntity.notFound().build();
         }
+
+        Resource resource = new FileSystemResource(file);
+        String contentType = determineContentType(filename);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(contentType));
+        headers.set("Accept-Ranges", "bytes");
+        headers.set("Content-Disposition", "inline; filename=\"" + file.getName() + "\"");
+        headers.set("X-Content-Type-Options", "nosniff");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(resource);
     }
 
+    private String determineContentType(String filename) {
+        String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        switch (extension) {
+            case "pdf":
+                return "application/pdf";
+            case "png":
+                return "image/png";
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "docx":
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            default:
+                try {
+                    String contentType = Files.probeContentType(new File("Uploads/" + filename).toPath());
+                    return contentType != null ? contentType : "application/octet-stream";
+                } catch (IOException e) {
+                    return "application/octet-stream";
+                }
+        }
+    }
 }
