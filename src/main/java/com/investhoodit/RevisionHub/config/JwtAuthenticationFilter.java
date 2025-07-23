@@ -1,5 +1,7 @@
 package com.investhoodit.RevisionHub.config;
 
+import com.investhoodit.RevisionHub.service.CustomerUserDetailsService;
+import com.investhoodit.RevisionHub.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -25,13 +27,11 @@ import java.security.Key;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private final JwtUtil util;
+    private final CustomerUserDetailsService userDetailsService;
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    private final UserDetailsService userDetailsService;
-
-    public JwtAuthenticationFilter(UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil util, CustomerUserDetailsService userDetailsService) {
+        this.util = util;
         this.userDetailsService = userDetailsService;
     }
 
@@ -41,14 +41,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         logger.debug("Authorization header: {}", header);
 
-        if (header == null || !header.startsWith("Bearer ")) {
-            logger.warn("No Bearer token found in Authorization header");
+        if (header == null) {
+            logger.warn("Bearer token is null");
             filterChain.doFilter(request, response);
             return;
         }
+        if (!header.startsWith("Bearer ")) {
+                logger.warn("No Bearer token found in Authorization header");
+                filterChain.doFilter(request, response);
+                return;
+            }
+
 
         String token = header.substring(7);
-        String email = validateJwtAndGetEmail(token);
+        String email = util.validateJwtAndGetEmail(token);
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -71,20 +77,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String validateJwtAndGetEmail(String token) {
-        try {
-            Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-            String email = claims.getSubject();
-            logger.debug("JWT validated, email: {}", email);
-            return email;
-        } catch (Exception e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
-            return null;
-        }
-    }
 }

@@ -5,13 +5,11 @@ import com.investhoodit.RevisionHub.model.QuestionPaper;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.service.UploadQuestionPaperService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
+@RequestMapping("/api/admin")
 public class UploadQuestionPaperController {
 
     private final UploadQuestionPaperService uploadQuestionPaperService;

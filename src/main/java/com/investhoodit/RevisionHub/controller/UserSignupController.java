@@ -7,13 +7,10 @@ import com.investhoodit.RevisionHub.model.User;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-
 @RestController
-@RequestMapping("/signup")
+@RequestMapping("/api/auth/signup")
 public class UserSignupController {
 
     private final UserSignupService userSignupService;

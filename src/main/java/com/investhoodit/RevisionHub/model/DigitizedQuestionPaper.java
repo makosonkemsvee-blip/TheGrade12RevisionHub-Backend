@@ -3,6 +3,9 @@ package com.investhoodit.RevisionHub.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "digitized_question_papers")
 @Data
@@ -24,4 +27,5 @@ public class DigitizedQuestionPaper {
 
     @Column(name = "is_interactive")
     private boolean isInteractive;
+
 }

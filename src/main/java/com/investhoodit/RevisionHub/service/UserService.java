@@ -66,7 +66,8 @@ public class UserService {
 
     public User searchUser(String email){
 
-        return userRepository.findUserByEmail(email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
 
     }
 
@@ -77,7 +78,8 @@ public class UserService {
     }
 
     public boolean removeUser(String email) {
-        User user = userRepository.findUserByEmail(email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
 
         if(user != null) {
             userRepository.delete(user);

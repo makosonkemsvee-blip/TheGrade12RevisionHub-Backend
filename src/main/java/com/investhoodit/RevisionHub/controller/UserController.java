@@ -20,7 +20,7 @@ import java.util.Base64;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user/users")
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);

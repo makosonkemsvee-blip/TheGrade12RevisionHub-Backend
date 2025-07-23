@@ -29,14 +29,14 @@ public class UserSignupService {
                 user.setPassword(userDTO.getPassword());
                 user.setPhoneNumber(userDTO.getPhoneNumber());
                 // Set role to STUDENT if specified in DTO, otherwise default to USER
-                String role = userDTO.getRole() != null && userDTO.getRole().equals("STUDENT") ? "STUDENT" : "USER";
+                String role = userDTO.getRole() != null && userDTO.getRole().equals("ADMIN") ? "ADMIN" : "USER";
                 user.setRole(role);
                 user.setFirstLogin(true);
                 user.setPassword(passwordEncoderService.encodePassword(user.getPassword()));
                 User savedUser = userRepository.save(user);
 
                 // Send email notification only for STUDENT role
-                if ("STUDENT".equals(role)) {
+                if ("USER".equals(role)) {
                     String subject = "Welcome to RevisionHub!";
                     String body = String.format("Dear %s %s,\n\nCongratulations! You have successfully registered as a student on RevisionHub. " +
                                     "We're excited to have you on board. You can now start exploring the platform and accessing your study resources.\n\n" +
