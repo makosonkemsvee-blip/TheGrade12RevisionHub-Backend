@@ -96,6 +96,7 @@ public class ResourcesController {
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
     public ResponseEntity<Resource> viewFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token, HttpServletRequest request) {
         File file = new File("Uploads/" + filename).getAbsoluteFile();
+        System.out.println("Received view request for filename: " + filename);
         System.out.println("Attempting to view file: " + file.getAbsolutePath());
         if (!file.exists() || !file.isFile()) {
             System.out.println("File not found or not a file: " + file.getAbsolutePath());
@@ -116,6 +117,7 @@ public class ResourcesController {
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token, HttpServletRequest request) {
         File file = new File("Uploads/" + filename).getAbsoluteFile();
+        System.out.println("Received download request for filename: " + filename);
         System.out.println("Attempting to download file: " + file.getAbsolutePath());
         if (!file.exists() || !file.isFile()) {
             System.out.println("File not found or not a file: " + file.getAbsolutePath());
@@ -144,6 +146,10 @@ public class ResourcesController {
                 return "image/jpeg";
             case "docx":
                 return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case "mp4":
+                return "video/mp4";
+            case "webm":
+                return "video/webm";
             default:
                 try {
                     String contentType = Files.probeContentType(new File("Uploads/" + filename).toPath());

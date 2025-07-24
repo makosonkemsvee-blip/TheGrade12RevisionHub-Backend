@@ -70,11 +70,13 @@ public class ResourcesService {
                     "application/pdf",
                     "image/png",
                     "image/jpeg",
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "video/mp4",
+                    "video/webm"
             };
             boolean isValidType = Arrays.asList(allowedTypes).contains(file.getContentType());
             if (!isValidType) {
-                throw new IllegalArgumentException("Only PDF, PNG, JPEG, and DOCX files are allowed.");
+                throw new IllegalArgumentException("Only PDF, PNG, JPEG, DOCX, MP4, and WebM files are allowed.");
             }
             // Sanitize filename to remove spaces and special characters
             String originalFileName = file.getOriginalFilename();
