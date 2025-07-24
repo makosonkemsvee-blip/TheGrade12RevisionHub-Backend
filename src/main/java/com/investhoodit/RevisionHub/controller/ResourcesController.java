@@ -26,7 +26,7 @@ public class ResourcesController {
         this.resourcesService = resourcesService;
     }
 
-    @PostMapping("/api/upload-resource")
+    @PostMapping("/api/admin/upload-resource")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Resources>> uploadResource(@ModelAttribute ResourcesDTO resourcesDTO) {
         try {
@@ -71,7 +71,7 @@ public class ResourcesController {
         }
     }
 
-    @GetMapping("/api/resources")
+    @GetMapping("/api/user/resources")
     public ResponseEntity<ApiResponse<List<Resources>>> getResources() {
         try {
             List<Resources> resources = resourcesService.getResources();
@@ -91,7 +91,7 @@ public class ResourcesController {
         }
     }
 
-    @GetMapping("/Uploads/view/{filename:.+}")
+    @GetMapping("/api/user/Uploads/view/{filename:.+}")
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
     public ResponseEntity<Resource> viewFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token) {
         File file = new File("Uploads/" + filename);
@@ -109,7 +109,7 @@ public class ResourcesController {
                 .body(resource);
     }
 
-    @GetMapping("/Uploads/download/{filename:.+}")
+    @GetMapping("/api/user/Uploads/download/{filename:.+}")
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token) {
         File file = new File("Uploads/" + filename);
@@ -126,7 +126,7 @@ public class ResourcesController {
                 .body(resource);
     }
 
-    @GetMapping("/Uploads/{filename:.+}")
+    @GetMapping("/api/user/Uploads/{filename:.+}")
     public ResponseEntity<Resource> serveFile(
             @PathVariable String filename,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
