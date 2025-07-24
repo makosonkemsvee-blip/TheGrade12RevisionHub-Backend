@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api")
 public class ResourcesController {
     private final ResourcesService resourcesService;
 
@@ -26,7 +27,7 @@ public class ResourcesController {
         this.resourcesService = resourcesService;
     }
 
-    @PostMapping("/api/admin/upload-resource")
+    @PostMapping("/admin/upload-resource")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Resources>> uploadResource(@ModelAttribute ResourcesDTO resourcesDTO) {
         try {
@@ -71,7 +72,7 @@ public class ResourcesController {
         }
     }
 
-    @GetMapping("/api/user/resources")
+    @GetMapping("/user/resources")
     public ResponseEntity<ApiResponse<List<Resources>>> getResources() {
         try {
             List<Resources> resources = resourcesService.getResources();
@@ -91,61 +92,43 @@ public class ResourcesController {
         }
     }
 
-    @GetMapping("/api/user/Uploads/view/{filename:.+}")
+    @GetMapping("/user/Uploads/view/{filename:.+}")
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
-    public ResponseEntity<Resource> viewFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token) {
-        File file = new File("Uploads/" + filename);
-        System.out.println("Attempting to serve file: " + file.getAbsolutePath());
-        if (!file.exists()) {
-            System.out.println("File not found: " + file.getAbsolutePath());
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Resource> viewFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token, HttpServletRequest request) {
+        File file = new File("Uploads/" + filename).getAbsoluteFile();
+        System.out.println("Attempting to view file: " + file.getAbsolutePath());
+        if (!file.exists() || !file.isFile()) {
+            System.out.println("File not found or not a file: " + file.getAbsolutePath());
+            return ResponseEntity.status(404).body(null);
         }
         Resource resource = new FileSystemResource(file);
         String contentType = determineContentType(filename);
         System.out.println("Serving file with content type: " + contentType);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getName() + "\"")
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                .header("X-Content-Type-Options", "nosniff")
                 .body(resource);
     }
 
-    @GetMapping("/api/user/Uploads/download/{filename:.+}")
+    @GetMapping("/user/Uploads/download/{filename:.+}")
     @PreAuthorize("isAuthenticated() or @securityConfig.isTokenValid(#request.getParameter('token'))")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token) {
-        File file = new File("Uploads/" + filename);
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename, @RequestParam(value = "token", required = false) String token, HttpServletRequest request) {
+        File file = new File("Uploads/" + filename).getAbsoluteFile();
         System.out.println("Attempting to download file: " + file.getAbsolutePath());
-        if (!file.exists()) {
-            System.out.println("File not found: " + file.getAbsolutePath());
-            return ResponseEntity.notFound().build();
+        if (!file.exists() || !file.isFile()) {
+            System.out.println("File not found or not a file: " + file.getAbsolutePath());
+            return ResponseEntity.status(404).body(null);
         }
         Resource resource = new FileSystemResource(file);
         String contentType = determineContentType(filename);
+        System.out.println("Downloading file with content type: " + contentType);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
-                .body(resource);
-    }
-
-    @GetMapping("/api/user/Uploads/{filename:.+}")
-    public ResponseEntity<Resource> serveFile(
-            @PathVariable String filename,
-            @RequestHeader(value = "Range", required = false) String rangeHeader) {
-        File file = new File("Uploads/" + filename);
-        if (!file.exists()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Resource resource = new FileSystemResource(file);
-        String contentType = determineContentType(filename);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(contentType));
-        headers.set("Accept-Ranges", "bytes");
-        headers.set("Content-Disposition", "inline; filename=\"" + file.getName() + "\"");
-        headers.set("X-Content-Type-Options", "nosniff");
-
-        return ResponseEntity.ok()
-                .headers(headers)
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                .header("X-Content-Type-Options", "nosniff")
                 .body(resource);
     }
 
@@ -166,6 +149,7 @@ public class ResourcesController {
                     String contentType = Files.probeContentType(new File("Uploads/" + filename).toPath());
                     return contentType != null ? contentType : "application/octet-stream";
                 } catch (IOException e) {
+                    System.err.println("Failed to determine content type for " + filename + ": " + e.getMessage());
                     return "application/octet-stream";
                 }
         }

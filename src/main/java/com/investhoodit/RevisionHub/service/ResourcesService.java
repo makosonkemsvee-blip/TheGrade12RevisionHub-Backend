@@ -76,18 +76,21 @@ public class ResourcesService {
             if (!isValidType) {
                 throw new IllegalArgumentException("Only PDF, PNG, JPEG, and DOCX files are allowed.");
             }
-            String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-            Path filePath = Paths.get(uploadDir + fileName);
-            System.out.println("Saving file to: " + filePath.toAbsolutePath());
+            // Sanitize filename to remove spaces and special characters
+            String originalFileName = file.getOriginalFilename();
+            String sanitizedFileName = originalFileName.replaceAll("[^a-zA-Z0-9.-]", "_");
+            String fileName = System.currentTimeMillis() + "-" + sanitizedFileName;
+            Path filePath = Paths.get(uploadDir, fileName).toAbsolutePath().normalize();
+            System.out.println("Saving file to: " + filePath);
             try {
                 Files.write(filePath, file.getBytes());
                 System.out.println("File saved successfully: " + fileName);
             } catch (IOException e) {
                 System.err.println("Failed to save file: " + e.getMessage());
-                throw e;
+                throw new IOException("Failed to save file: " + fileName, e);
             }
-            resource.setUrl("/uploads/" + fileName);
-            resource.setFileName(file.getOriginalFilename());
+            resource.setUrl("/Uploads/" + fileName);
+            resource.setFileName(originalFileName); // Store original filename for display
             resource.setFileType(file.getContentType());
         } else if (resourceType.equals("link")) {
             if (link == null || link.isEmpty()) {
