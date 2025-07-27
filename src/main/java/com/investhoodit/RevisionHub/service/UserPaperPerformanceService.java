@@ -23,11 +23,13 @@ public class UserPaperPerformanceService {
     private final PerformanceMetricRepository performanceRepository;
     private final UserRepository userRepository;
     private final DigitizedQuestionPaperRepository paperRepository;
+    private final DataMigrationService dataMigrationService;
 
-    public UserPaperPerformanceService(PerformanceMetricRepository performanceRepository, UserRepository userRepository, DigitizedQuestionPaperRepository paperRepository) {
+    public UserPaperPerformanceService(PerformanceMetricRepository performanceRepository, UserRepository userRepository, DigitizedQuestionPaperRepository paperRepository, DataMigrationService dataMigrationService) {
         this.performanceRepository = performanceRepository;
         this.userRepository = userRepository;
         this.paperRepository = paperRepository;
+        this.dataMigrationService = dataMigrationService;
     }
 
     public PerformanceMetric recordAttempt(PerformanceRequest request) {
@@ -56,11 +58,19 @@ public class UserPaperPerformanceService {
             performance.setDate(LocalDate.now());
 
         }
+        //Trigger migration for the user
+        dataMigrationService.migrateSubjectsForUser(user);
+
         return performanceRepository.save(performance);
     }
 
     public List<UserPaperPerformance> getUserPerformance() {
         return performanceRepository.findByUserId(findByToken().getId());
+    }
+
+    public long getCompletedTasksCount() {
+        User user = findByToken();
+        return performanceRepository.countByUserId(user.getId());
     }
 
     public User findByToken() {

@@ -5,7 +5,9 @@ import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.service.SubjectMasteryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -26,24 +28,24 @@ public class SubjectMasteryController {
             List<SubjectMasteryDTO> masteryData = subjectMasteryService.getSubjectMastery();
             if (!masteryData.isEmpty()) {
                 ApiResponse<List<SubjectMasteryDTO>> response = new ApiResponse<>(
-                        "Subject mastery data retrieved successfully.", // message first
-                        true, // success second
-                        masteryData // data third
+                        "Subject mastery data retrieved successfully.",
+                        true,
+                        masteryData
                 );
-                return ResponseEntity.ok().body(response);
+                return ResponseEntity.ok(response);
             } else {
                 ApiResponse<List<SubjectMasteryDTO>> response = new ApiResponse<>(
-                        "No mastery data available.", // message first
-                        false, // success second
-                        null // data third
+                        "No subject mastery data available.",
+                        false,
+                        null
                 );
-                return ResponseEntity.ok().body(response);
+                return ResponseEntity.ok(response);
             }
         } catch (Exception e) {
             ApiResponse<List<SubjectMasteryDTO>> response = new ApiResponse<>(
-                    "Failed to fetch subject mastery data: " + e.getMessage(), // message first
-                    false, // success second
-                    null // data third
+                    "Failed to fetch subject mastery data: " + e.getMessage(),
+                    false,
+                    null
             );
             return ResponseEntity.badRequest().body(response);
         }
