@@ -16,4 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> searchByFirstNameOrLastName(@Param("query") String query);
     long countByRole(String role);
 
+    @Query("SELECT us.subject.subjectName FROM UserSubjects us WHERE us.user = :user")
+    List<String> findEnrolledSubjectsByUser(@Param("user") User user);
+
 }

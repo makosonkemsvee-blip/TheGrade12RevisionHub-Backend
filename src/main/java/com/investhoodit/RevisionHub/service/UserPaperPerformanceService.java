@@ -1,14 +1,12 @@
 package com.investhoodit.RevisionHub.service;
 
 import com.investhoodit.RevisionHub.dto.PerformanceRequest;
+import com.investhoodit.RevisionHub.dto.SubjectMasteryDTO;
 import com.investhoodit.RevisionHub.model.DigitizedQuestionPaper;
 import com.investhoodit.RevisionHub.model.PerformanceMetric;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.model.UserPaperPerformance;
-import com.investhoodit.RevisionHub.repository.DigitizedQuestionPaperRepository;
-import com.investhoodit.RevisionHub.repository.PerformanceMetricRepository;
-import com.investhoodit.RevisionHub.repository.UserPaperPerformanceRepository;
-import com.investhoodit.RevisionHub.repository.UserRepository;
+import com.investhoodit.RevisionHub.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,6 +15,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserPaperPerformanceService {
@@ -24,12 +23,14 @@ public class UserPaperPerformanceService {
     private final UserRepository userRepository;
     private final DigitizedQuestionPaperRepository paperRepository;
     private final DataMigrationService dataMigrationService;
+    private final SubjectMasteryRepository subjectMasteryRepository;
 
-    public UserPaperPerformanceService(PerformanceMetricRepository performanceRepository, UserRepository userRepository, DigitizedQuestionPaperRepository paperRepository, DataMigrationService dataMigrationService) {
+    public UserPaperPerformanceService(PerformanceMetricRepository performanceRepository, UserRepository userRepository, DigitizedQuestionPaperRepository paperRepository, DataMigrationService dataMigrationService, SubjectMasteryRepository subjectMasteryRepository) {
         this.performanceRepository = performanceRepository;
         this.userRepository = userRepository;
         this.paperRepository = paperRepository;
         this.dataMigrationService = dataMigrationService;
+        this.subjectMasteryRepository = subjectMasteryRepository;
     }
 
     public PerformanceMetric recordAttempt(PerformanceRequest request) {
@@ -68,10 +69,28 @@ public class UserPaperPerformanceService {
         return performanceRepository.findByUserId(findByToken().getId());
     }
 
+
+
     public long getCompletedTasksCount() {
         User user = findByToken();
         return performanceRepository.countByUserId(user.getId());
     }
+
+    public List<SubjectMasteryDTO> getSubjectProgress() {
+        User user = findByToken();
+        List<PerformanceMetric> metrics = performanceRepository.findByUser(user);
+
+        // Group by subject and compute average score
+        return metrics.stream()
+                .collect(Collectors.groupingBy(
+                        metric -> metric.getSubject().getSubjectName(),
+                        Collectors.averagingDouble(PerformanceMetric::getScore)
+                ))
+                .entrySet().stream()
+                .map(entry -> new SubjectMasteryDTO(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
 
     public User findByToken() {
         return userRepository.findByEmail(

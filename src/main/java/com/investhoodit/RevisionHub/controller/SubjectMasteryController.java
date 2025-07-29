@@ -50,4 +50,14 @@ public class SubjectMasteryController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    /*@GetMapping("/courses")
+    public ResponseEntity<ApiResponse<List<SubjectMasteryDTO>>> getCourseProgress() {
+        try {
+            List<SubjectMasteryDTO> courses = subjectMasteryService.getSubjectMastery();
+            return ResponseEntity.ok(new ApiResponse<>("Course progress retrieved successfully", true, courses));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Failed to retrieve course progress: " + e.getMessage(), false, null));
+        }
+    }*/
 }
