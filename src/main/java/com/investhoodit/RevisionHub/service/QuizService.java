@@ -23,13 +23,15 @@ public class QuizService {
     private final UserRepository userRepository;
     private final SubjectRepository subjectRepository;
     private final PerformanceMetricRepository performanceMetricRepository;
+    private final DataMigrationService dataMigrationService;
 
-    public QuizService(QuizRepository quizRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, SubjectRepository subjectRepository, PerformanceMetricRepository performanceMetricRepository) {
+    public QuizService(QuizRepository quizRepository, UserSubjectsRepository userSubjectsRepository, UserRepository userRepository, SubjectRepository subjectRepository, PerformanceMetricRepository performanceMetricRepository, DataMigrationService dataMigrationService) {
         this.quizRepository = quizRepository;
         this.userSubjectsRepository = userSubjectsRepository;
         this.userRepository = userRepository;
         this.subjectRepository = subjectRepository;
         this.performanceMetricRepository = performanceMetricRepository;
+        this.dataMigrationService = dataMigrationService;
     }
 
     public List<QuizDTO> findQuizzesForUser() {
@@ -148,12 +150,18 @@ public class QuizService {
 
         saveQuizSubmission(quizId,quiz.getSubject(), quiz.getTitle(), percentage, user);
 
+        //Trigger migration for this user
+        dataMigrationService.migrateSubjectsForUser(user);
+
         QuizResultDTO result = new QuizResultDTO();
         result.setQuizId(quizId);
         result.setQuizTitle(quiz.getTitle());
         result.setScore(score);
         result.setTotalQuestions(totalQuestions);
         System.out.println("Submission processed: Score=" + percentage + "/" + totalQuestions);
+
+
+
         return result;
     }
 

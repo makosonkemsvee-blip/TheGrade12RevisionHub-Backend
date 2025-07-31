@@ -35,4 +35,8 @@ public interface PerformanceMetricRepository extends JpaRepository<PerformanceMe
     PerformanceMetric findByUserIdAndActivityId(Long id, Long paperId);
 
     List<UserPaperPerformance> findByUserId(Long id);
+
+    List<PerformanceMetric> findByUser(User user);
+
+    Long countByUserId(Long userId); //added for counting
 }

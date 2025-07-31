@@ -15,12 +15,14 @@ public class UserLoginService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final NotificationService notificationService;
+    private final UserService userService;
 
-    public UserLoginService(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, NotificationService notificationService) {
+    public UserLoginService(JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder, NotificationService notificationService, UserService userService) {
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.notificationService = notificationService;
+        this.userService = userService;
     }
 
     public LoginResponse authenticateAndGenerateToken(LoginRequest loginRequest) {
@@ -31,10 +33,14 @@ public class UserLoginService {
             throw new RuntimeException("Invalid password");
         }
 
+        // Record login for attendance tracking
+        userService.recordLogin(loginRequest.getEmail());
+
+
         // Update firstLogin flag after successful login
         if (user.isFirstLogin()) {
             //logger.info("First login detected for user ID: {}, sending welcome notification", user.getId());
-            String welcomeMessage = "Welcome to the System, we are pleased to have you onboard, " + user.getFirstName() + " " + user.getLastName() + "!";
+            String welcomeMessage = "Welcome to the 'Grade 12 Revision Hub', We are pleased to have you onboard, " + user.getFirstName() + " " + user.getLastName() + " 📚📚📚!";
             notificationService.createNotification(user.getId(), welcomeMessage, "WELCOME");
            // logger.info("Welcome notification sent for user ID: {}", user.getId());
 
