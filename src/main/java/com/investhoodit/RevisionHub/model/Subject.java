@@ -1,7 +1,9 @@
 package com.investhoodit.RevisionHub.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "subject")
 public class Subject {
@@ -17,11 +19,4 @@ public class Subject {
 		this.subjectName = subjectName;
 	}
 
-	public String getSubjectName() {
-		return subjectName;
-	}
-
-	public void setSubjectName(String subjectName) {
-		this.subjectName = subjectName;
-	}
 }
