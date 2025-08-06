@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +25,7 @@ public class UserActivityService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public UserActivity saveActivity(String description) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
@@ -40,6 +42,7 @@ public class UserActivityService {
         return activityRepository.save(activity);
     }
 
+    @Transactional(readOnly = true)
     public List<UserActivity> getUserActivities() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
@@ -47,8 +50,25 @@ public class UserActivityService {
                     log.error("User not found with email: {}", email);
                     return new EntityNotFoundException("User not found with email: " + email);
                 });
-        List<UserActivity> activities = activityRepository.findByUserOrderByDateDesc(user);
+        List<UserActivity> activities = activityRepository.findTop10ByUserOrderByDateDesc(user);
         log.info("Retrieved {} activities for user {}", activities.size(), email);
         return activities;
+    }
+
+    @Transactional
+    public void deleteAllUserActivities() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        log.info("Attempting to delete activities for email: {}", email);
+        if (email == null) {
+            log.error("No email found in SecurityContext");
+            throw new EntityNotFoundException("No authenticated user found");
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.error("User not found with email: {}", email);
+                    return new EntityNotFoundException("User not found with email: " + email);
+                });
+        activityRepository.deleteByUser(user);
+        log.info("Deleted all activities for user {}", email);
     }
 }

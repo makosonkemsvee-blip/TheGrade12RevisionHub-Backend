@@ -8,4 +8,8 @@ import java.util.List;
 
 public interface UserActivityRepository extends JpaRepository<UserActivity, Long> {
     List<UserActivity> findByUserOrderByDateDesc(User user);
+    void deleteByUser(User user);
+
+    //New Method to limit 10 activities
+    List<UserActivity> findTop10ByUserOrderByDateDesc(User user);
 }

@@ -36,4 +36,14 @@ public class UserActivityController {
             return ResponseEntity.badRequest().body(new ApiResponse<>("Failed to retrieve activities: " + e.getMessage(), false, null));
         }
     }
+
+    @DeleteMapping("/activities")
+    public ResponseEntity<ApiResponse<String>> deleteAllActivities() {
+        try {
+            activityService.deleteAllUserActivities();
+            return ResponseEntity.ok(new ApiResponse<>("All activities deleted successfully", true, null));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Failed to delete activities: " + e.getMessage(), false, null));
+        }
+    }
 }
