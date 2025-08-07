@@ -1,5 +1,6 @@
 package com.investhoodit.RevisionHub.service;
 
+import com.investhoodit.RevisionHub.dto.PasswordChangeDTO;
 import com.investhoodit.RevisionHub.dto.ProfileUpdateRequest;
 import com.investhoodit.RevisionHub.dto.UserResponse;
 import com.investhoodit.RevisionHub.model.ApiResponse;
@@ -18,9 +19,11 @@ import java.util.Base64;
 public class ProfileManagementService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoderService passwordEncoderService;
 
-    public ProfileManagementService(UserRepository userRepository) {
+    public ProfileManagementService(UserRepository userRepository, PasswordEncoderService passwordEncoderService) {
         this.userRepository = userRepository;
+        this.passwordEncoderService = passwordEncoderService;
     }
 
     public ResponseEntity<ApiResponse<User>> updateProfile(ProfileUpdateRequest profileRequest) {
@@ -139,5 +142,21 @@ public class ProfileManagementService {
             );
             return ResponseEntity.status(500).body(response);
         }
+    }
+
+    public void changePassword( PasswordChangeDTO passwordChangeDTO) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoderService.verifyPassword(passwordChangeDTO.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+
+        // Update password
+        String encodedNewPassword = passwordEncoderService.encodePassword(passwordChangeDTO.getNewPassword());
+        user.setPassword(encodedNewPassword);
+        userRepository.save(user);
     }
 }
