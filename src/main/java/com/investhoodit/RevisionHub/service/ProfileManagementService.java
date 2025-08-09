@@ -144,19 +144,40 @@ public class ProfileManagementService {
         }
     }
 
-    public void changePassword( PasswordChangeDTO passwordChangeDTO) {
+    public ResponseEntity<String> changePassword(PasswordChangeDTO passwordChangeDTO) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            // Verify current password
+            if (!passwordEncoderService.verifyPassword(passwordChangeDTO.getCurrentPassword(), user.getPassword())) {
+                throw new IllegalArgumentException("Current password is incorrect");
+            }
 
-        // Verify current password
-        if (!passwordEncoderService.verifyPassword(passwordChangeDTO.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Current password is incorrect");
+            // Update password
+            String encodedNewPassword = passwordEncoderService.encodePassword(passwordChangeDTO.getNewPassword());
+            user.setPassword(encodedNewPassword);
+            userRepository.save(user);
+            return ResponseEntity.ok(( "Password changed successfully"));
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest().body( "Current password is incorrect");
+        } catch (Exception e) {
+
+            return ResponseEntity.status(500).body("Internal server error");
         }
 
-        // Update password
-        String encodedNewPassword = passwordEncoderService.encodePassword(passwordChangeDTO.getNewPassword());
-        user.setPassword(encodedNewPassword);
-        userRepository.save(user);
+    }
+
+    public ResponseEntity<String> deleteAccount(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            userRepository.delete(user);
+            return ResponseEntity.ok("Account deleted successfully");
+        }catch (Exception e) {
+            return ResponseEntity.status(500).body("Internal server error");
+        }
     }
 }

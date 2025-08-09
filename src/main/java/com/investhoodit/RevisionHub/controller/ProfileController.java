@@ -54,16 +54,11 @@ public class ProfileController {
     @PutMapping("/change-password")
     public ResponseEntity<String> changePassword(
             @RequestBody PasswordChangeDTO passwordChangeDTO) {
+        return profileManagementService.changePassword(passwordChangeDTO);
+    }
 
-        try {
-            profileManagementService.changePassword(passwordChangeDTO);
-            return ResponseEntity.ok(( "Password changed successfully"));
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity.badRequest().body( "Current password is incorrect");
-        } catch (Exception e) {
-
-            return ResponseEntity.status(500).body("Internal server error");
-        }
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<String> deleteAccount(){
+        return profileManagementService.deleteAccount();
     }
 }
