@@ -42,7 +42,7 @@ public class UserLoginService {
             //logger.info("First login detected for user ID: {}, sending welcome notification", user.getId());
             String welcomeMessage = "Welcome to the 'Grade 12 Revision Hub', We are pleased to have you onboard, " + user.getFirstName() + " " + user.getLastName() + " 📚📚📚!";
             notificationService.createNotification(user.getId(), welcomeMessage, "WELCOME");
-           // logger.info("Welcome notification sent for user ID: {}", user.getId());
+            // logger.info("Welcome notification sent for user ID: {}", user.getId());
 
             user.setFirstLogin(false);
             userRepository.save(user);
