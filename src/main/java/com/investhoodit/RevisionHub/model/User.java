@@ -5,19 +5,18 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Entity
 @Table(name = "user_tbl")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String firstName;
     private String lastName;
     private String idNumber;
@@ -41,6 +40,15 @@ public class User {
 
     @Column(name = "first_login", nullable = false)
     private boolean firstLogin = true;
+
+    @Column(name = "otp_code")
+    private String otpCode;
+
+    @Column(name = "otp_expiry")
+    private LocalDateTime otpExpiry;
+
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false;
 
     @OneToOne
     @JoinColumn(name = "settings_email")
@@ -71,8 +79,15 @@ public class User {
     private Attendance attendances;
 
 
-
     public boolean getTwoFactorEnabled() {
         return twoFactorEnabled;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
     }
 }
