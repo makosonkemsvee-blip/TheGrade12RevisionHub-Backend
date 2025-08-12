@@ -29,6 +29,10 @@ public class UserLoginService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (!user.getIsVerified()) {
+            throw new RuntimeException("Email not verified. Please verify your email using the OTP sent during signup.");
+        }
+
         if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
@@ -36,19 +40,14 @@ public class UserLoginService {
         // Record login for attendance tracking
         userService.recordLogin(loginRequest.getEmail());
 
-
         // Update firstLogin flag after successful login
         if (user.isFirstLogin()) {
-            //logger.info("First login detected for user ID: {}, sending welcome notification", user.getId());
             String welcomeMessage = "Welcome to the 'Grade 12 Revision Hub', We are pleased to have you onboard, " + user.getFirstName() + " " + user.getLastName() + " 📚📚📚!";
             notificationService.createNotification(user.getId(), welcomeMessage, "WELCOME");
-            // logger.info("Welcome notification sent for user ID: {}", user.getId());
-
             user.setFirstLogin(false);
             userRepository.save(user);
         }
         String token = jwtUtil.generateJwtToken(user.getEmail());
         return new LoginResponse(token, "Login successful", user.getRole());
     }
-
 }

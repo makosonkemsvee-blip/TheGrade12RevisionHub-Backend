@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class UserSignupService {
@@ -43,20 +45,11 @@ public class UserSignupService {
         user.setFirstLogin(true);
         user.setIsVerified(false);
 
-        // Generate OTP
         String otp = generateOTP();
         user.setOtpCode(otp);
-        user.setOtpExpiry(LocalDateTime.now().plusMinutes(10)); // OTP valid for 10 minutes
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
 
         User savedUser = userRepository.save(user);
-
-//        // Send OTP email
-//        String subject = "Verify Your Email - RevisionHub OTP";
-//        String body = String.format("Dear %s %s,\n\nThank you for registering with RevisionHub. " +
-//                        "Please use the following OTP to verify your email address: %s\n\n" +
-//                        "This OTP is valid for 10 minutes.\n\nBest regards,\nThe RevisionHub Team",
-//                userDTO.getFirstName(), userDTO.getLastName(), otp);
-//        emailService.sendEmail(userDTO.getEmail(), subject, body);
 
         sendOTPEmail(userDTO.getEmail(), userDTO.getFirstName(), userDTO.getLastName(), otp);
 
@@ -64,6 +57,8 @@ public class UserSignupService {
     }
 
     private void sendOTPEmail(String email, String firstName, String lastName, String otp) throws MessagingException {
+        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+        String verifyUrl = "https://revisionhub.com/verify-otp?email=" + encodedEmail;
         String subject = "Verify Your Email - RevisionHub OTP";
         String htmlBody = String.format(
                 "<!DOCTYPE html>" +
@@ -86,10 +81,10 @@ public class UserSignupService {
                         "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>Thank you for joining RevisionHub. Please use the following One-Time Password (OTP) to verify your email address:</p>" +
                         "<div style='font-size:28px;font-weight:bold;color:#b91c1c;text-align:center;padding:15px;background-color:#f4f4f4;margin:20px 0;'>%s</div>" +
                         "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>This OTP is valid for 10 minutes. Enter it on the verification page to activate your account.</p>" +
-                        "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>If you did not initiate this request, please ignore this email or contact our support team.</p>" +
                         "<div style='text-align:center;'>" +
-                        "<a href='https://revisionhub.com/verify' style='display:inline-block;padding:12px 24px;background-color:#1f7a6e;color:#ffffff;text-decoration:none;font-size:16px;'>Verify Your Email</a>" +
+                        "<a href='%s' style='display:inline-block;padding:12px 24px;background-color:#1f7a6e;color:#ffffff;text-decoration:none;font-size:16px;'>Verify Your Email</a>" +
                         "</div>" +
+                        "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>If you did not initiate this request, please ignore this email or contact our support team.</p>" +
                         "</td>" +
                         "</tr>" +
                         "<tr>" +
@@ -101,14 +96,14 @@ public class UserSignupService {
                         "</table>" +
                         "</body>" +
                         "</html>",
-                firstName, lastName, otp
+                firstName, lastName, otp, verifyUrl
         );
         String textBody = String.format(
                 "Welcome, %s %s!\n\n" +
                         "Thank you for joining RevisionHub. Please use the following One-Time Password (OTP) to verify your email address: %s\n\n" +
-                        "This OTP is valid for 10 minutes. Enter it at https://revisionhub.com/verify to activate your account.\n\n" +
+                        "This OTP is valid for 10 minutes. Enter it at %s to activate your account.\n\n" +
                         "If you did not initiate this request, please ignore this email or contact support@revisionhub.com.",
-                firstName, lastName, otp
+                firstName, lastName, otp, verifyUrl
         );
 
         MimeMessage message = mailSender.createMimeMessage();
@@ -118,9 +113,6 @@ public class UserSignupService {
         helper.setText(textBody, htmlBody);
         mailSender.send(message);
     }
-
-
-
 
     public boolean verifyOTP(String email, String otp) {
         return userRepository.findByEmail(email)
@@ -134,16 +126,6 @@ public class UserSignupService {
                         user.setOtpCode(null);
                         user.setOtpExpiry(null);
                         userRepository.save(user);
-
-//                        // Send welcome email after successful verification
-//                        String subject = "Welcome to RevisionHub!";
-//                        String body = String.format("Dear %s %s,\n\nCongratulations! Your email has been successfully verified. " +
-//                                        "Welcome to RevisionHub! You can now log in and start exploring the platform to access your study resources.\n\n" +
-//                                        "Best regards,\nThe RevisionHub Team",
-//                                user.getFirstName(), user.getLastName());
-//                        emailService.sendEmail(user.getEmail(), subject, body);
-//
-
 
                         String subject = "Welcome to RevisionHub!";
                         String htmlBody = String.format(
@@ -213,4 +195,26 @@ public class UserSignupService {
         return String.valueOf(otp);
     }
 
+    public String resendOTP(String email) throws Exception {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("User not found"));
+
+        if (user.getIsVerified()) {
+            throw new Exception("Email already verified");
+        }
+
+        // Check cooldown (2 minutes since last OTP)
+        if (user.getOtpExpiry() != null && LocalDateTime.now().isBefore(user.getOtpExpiry().minusMinutes(8))) {
+            return "An OTP has been recently sent. Please check your email or wait a few minutes to request a new one.";
+        }
+
+        // Generate and send new OTP
+        String otp = generateOTP();
+        user.setOtpCode(otp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        sendOTPEmail(email, user.getFirstName(), user.getLastName(), otp);
+        return "OTP sent successfully. Check your email.";
+    }
 }

@@ -4,6 +4,7 @@ import com.investhoodit.RevisionHub.dto.UserDTO;
 import com.investhoodit.RevisionHub.model.ApiResponse;
 import com.investhoodit.RevisionHub.service.UserSignupService;
 import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.model.OTPRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
@@ -48,7 +49,6 @@ public class UserSignupController {
                     null
             );
             return ResponseEntity.ok().body(response);
-            //return ResponseEntity.ok(new ApiResponse<>("Email verified successfully", true, null));
         } else {
             ApiResponse<String> response = new ApiResponse<>(
                     "Invalid or expired OTP",
@@ -56,29 +56,26 @@ public class UserSignupController {
                     null
             );
             return ResponseEntity.badRequest().body(response);
-            //return ResponseEntity.badRequest(new ApiResponse<>("Invalid or expired OTP", false, null));
         }
     }
-}
 
-// DTO for OTP verification request
-class OTPRequest {
-    private String email;
-    private String otp;
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getOtp() {
-        return otp;
-    }
-
-    public void setOtp(String otp) {
-        this.otp = otp;
+    @PostMapping("/resend-otp")
+    public ResponseEntity<ApiResponse<String>> resendOTP(@RequestBody OTPRequest request) {
+        try {
+            String message = userSignupService.resendOTP(request.getEmail());
+            ApiResponse<String> response = new ApiResponse<>(
+                    message,
+                    message.contains("successfully"),
+                    request.getEmail()
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ApiResponse<String> response = new ApiResponse<>(
+                    "Failed to resend OTP: " + e.getMessage(),
+                    false,
+                    null
+            );
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }
