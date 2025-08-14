@@ -13,6 +13,7 @@ public class SettingsService {
 
     @Autowired
     private SettingsRepository settingsRepository;
+    private UserService userService;
 
     public SettingsDTO getSettings(String username) {
         Settings settings = settingsRepository.findById(username)
@@ -63,5 +64,9 @@ public class SettingsService {
         settings.setLanguage(dto.getLanguage());
         settings.setProfileVisibility(dto.getProfileVisibility());
         settings.setDataSharing(dto.isDataSharing());
+    }
+
+    public void deleteUser(String username) {
+        userService.removeUser(username);
     }
 }

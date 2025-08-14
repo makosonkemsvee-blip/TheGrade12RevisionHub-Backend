@@ -78,16 +78,12 @@ public class UserService {
     }
 
     public boolean removeUser(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
-
-        if(user != null) {
-            userRepository.delete(user);
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            userRepository.delete(userOpt.get());
             return true;
-        }else{
-            return false;
         }
-
+        return false;
     }
 
     public Optional<User> findByEmail(String email) {
