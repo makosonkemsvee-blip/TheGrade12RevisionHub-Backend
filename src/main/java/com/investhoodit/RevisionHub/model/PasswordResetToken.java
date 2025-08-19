@@ -13,10 +13,12 @@ public class PasswordResetToken {
     private Long id;
     private String token;
     private LocalDateTime expiryDate;
-   
+	private String email;
+
 	@ManyToOne
+	@JoinColumn(name = "user_id")
     private User user;
-	 
+
     public PasswordResetToken(String token, LocalDateTime expiryDate, User user) {
 		super();
 		this.token = token;
@@ -24,9 +26,16 @@ public class PasswordResetToken {
 		this.user = user;
 	}
 
+	public PasswordResetToken(String token, LocalDateTime expiryDate, User user, String email) {
+		super();
+		this.token = token;
+		this.expiryDate = expiryDate;
+		this.user = user;
+		this.email = email;
+	}
 
 	public PasswordResetToken() {
-		
+
 	}
-    
+
 }

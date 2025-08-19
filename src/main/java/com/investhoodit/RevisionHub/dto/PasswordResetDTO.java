@@ -6,4 +6,5 @@ import lombok.*;
 public class PasswordResetDTO {
     private String otp;
     private String newPassword;
+    private String email;
 }
