@@ -57,7 +57,7 @@ public class QuestionPaperService {
             }
         }
         for (QuestionPaper questionPaper : questionPapers) {
-            for (Subject subject: subjectRepository.findAll()) {
+            for (Subject subject : subjectRepository.findAll()) {
                 String subjectName = subject.getSubjectName();
                 if (questionPaper.getFileName().toLowerCase().contains(subjectName.toLowerCase())) {
                     questionPaper.setSubject(subject);
@@ -65,11 +65,12 @@ public class QuestionPaperService {
             }
         }
 
-        if (allQuestionPapers().isEmpty()) {
-            questionPaperRepository.saveAll(questionPapers);
+        for (QuestionPaper questionPaper : questionPapers) {
+            if (!questionPaperRepository.existsByFileName(questionPaper.getFileName())) {
+                questionPaperRepository.save(questionPaper);
+            }
         }
     }
-
     public List<QuestionPaper> allQuestionPapers() {
         return questionPaperRepository.findAll();
     }
