@@ -59,7 +59,7 @@ public class QuestionPaperService {
         for (QuestionPaper questionPaper : questionPapers) {
             for (Subject subject : subjectRepository.findAll()) {
                 String subjectName = subject.getSubjectName();
-                if (questionPaper.getFileName().toLowerCase().contains(subjectName.toLowerCase())) {
+                if (questionPaper.getFileName().toLowerCase().startsWith(subjectName.toLowerCase())) {
                     questionPaper.setSubject(subject);
                 }
             }
@@ -71,6 +71,7 @@ public class QuestionPaperService {
             }
         }
     }
+
     public List<QuestionPaper> allQuestionPapers() {
         return questionPaperRepository.findAll();
     }
