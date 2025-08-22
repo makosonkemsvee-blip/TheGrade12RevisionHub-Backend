@@ -42,17 +42,17 @@ public class UserPaperPerformanceService {
                 .orElseThrow(() -> new EntityNotFoundException("Paper not found"));
         PerformanceMetric performance;
         DecimalFormat df = new DecimalFormat("#.##");
-        Double average;
+        double score = Double.parseDouble(df.format(request.getScore()));
 
         if (performanceRepository.existsByUserIdAndActivityId(user.getId(), request.getPaperId())) {
             performance = performanceRepository.findByUserIdAndActivityId(user.getId(), request.getPaperId());
-            performance.setScore(performance.getScore() > request.getScore()?performance.getScore():request.getScore());
+            performance.setScore(performance.getScore() > score?performance.getScore():score);
             performance.setDate(LocalDate.now());
         } else {
             performance = new PerformanceMetric();
             performance.setUser(user);
             performance.setSubject(paper.getSubject());
-            performance.setScore(request.getScore());
+            performance.setScore(score);
             performance.setActivityName(paper.getFileName());
             performance.setActivityType("Digitized QP");
             performance.setActivityId(paper.getId());
