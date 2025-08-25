@@ -11,6 +11,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PerformanceRequest {
     private Long paperId;
-    private int score;
+    private double score;
     private int maxScore;
 }

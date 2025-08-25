@@ -42,19 +42,25 @@ public class MessageController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         List<User> users = userRepository.findAll();
         users.removeIf(u -> u.getEmail().equals(currentUserEmail));
-        return ResponseEntity.ok(users);
+        List<UserDTO> userDto = users.stream()
+                .map(u -> new UserDTO(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail(),u.getRole(),u.getCreatedAt(),u.getTwoFactorEnabled()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDto);
     }
 
     @GetMapping("/users/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam("query") @NotBlank String query) {
+    public ResponseEntity<List<UserDTO>> searchUsers(@RequestParam("query") @NotBlank String query) {
         String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         List<User> users = userRepository.searchByFirstNameOrLastName(query);
         users.removeIf(u -> u.getEmail().equals(currentUserEmail));
-        return ResponseEntity.ok(users);
+        List<UserDTO> userDto = users.stream()
+                .map(u -> new UserDTO(u.getId(), u.getFirstName(), u.getLastName(), u.getEmail(),u.getRole(),u.getCreatedAt(),u.getTwoFactorEnabled()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDto);
     }
 
     @GetMapping("/group")
