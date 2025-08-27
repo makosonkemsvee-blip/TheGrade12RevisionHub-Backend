@@ -41,28 +41,31 @@ public class PasswordResetService {
     }
 
     public String sendPasswordResetEmail(String email) {
+        if (email == null || !email.matches("^\\S+@\\S+\\.\\S+$")) {
+            throw new IllegalArgumentException("Invalid email address");
+        }
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String otp = generateOTP();
         PasswordResetToken resetToken = new PasswordResetToken(otp, LocalDateTime.now().plusMinutes(10), user, email);
-        logger.info("Generated OTP: {} for email: {}", otp, email);
+        logger.info("Generated OTP for email: {}", email);
         tokenRepository.save(resetToken);
         logger.info("Stored OTP for email: {}", email);
 
         try {
             sendOTPEmail(email, user.getFirstName(), user.getLastName(), otp);
+            return "OTP sent successfully via email";
         } catch (MessagingException e) {
-            logger.error("Failed to send password reset email: {}", e.getMessage());
-            throw new RuntimeException("Failed to send password reset email");
+            logger.error("Failed to send password reset email for {}: {}", email, e.getMessage());
+            throw new RuntimeException("Failed to send password reset email: " + e.getMessage());
         }
-
-        return "OTP sent successfully via email";
     }
 
     private void sendOTPEmail(String email, String firstName, String lastName, String otp) throws MessagingException {
         String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-        String resetUrl = "https://revisionhub.com/reset-password?email=" + encodedEmail + "&otp=" + otp;
+        String resetUrl = "http://localhost:3000/reset-password"; // Update to match your frontend URL
         String subject = "Password Reset OTP - RevisionHub";
         String htmlBody = String.format(
                 "<!DOCTYPE html>" +
@@ -82,7 +85,7 @@ public class PasswordResetService {
                         "<tr>" +
                         "<td style='padding:30px;color:#333333;'>" +
                         "<h1 style='font-size:24px;margin:0 0 20px;color:#1f7a6e;text-align:center;'>Password Reset Request, %s %s</h1>" +
-                        "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>We received a request to reset your password for RevisionHub. Please use the following One-Time Password (OTP) to reset your password:</p>" +
+                        "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>We received a request to reset your password for RevisionHub. Please use the following One-Time Password (OTP):</p>" +
                         "<div style='font-size:28px;font-weight:bold;color:#b91c1c;text-align:center;padding:15px;background-color:#f4f4f4;margin:20px 0;'>%s</div>" +
                         "<p style='font-size:16px;line-height:1.6;margin:0 0 20px;text-align:center;'>This OTP is valid for 10 minutes. Click the button below to reset your password.</p>" +
                         "<div style='text-align:center;'>" +
@@ -104,7 +107,7 @@ public class PasswordResetService {
         );
         String textBody = String.format(
                 "Password Reset Request, %s %s!\n\n" +
-                        "We received a request to reset your password for RevisionHub. Please use the following One-Time Password (OTP) to reset your password: %s\n\n" +
+                        "We received a request to reset your password for RevisionHub. Please use the following One-Time Password (OTP): %s\n\n" +
                         "This OTP is valid for 10 minutes. Visit %s to reset your password.\n\n" +
                         "If you did not initiate this request, please ignore this email or contact support@revisionhub.com.",
                 firstName, lastName, otp, resetUrl
@@ -125,7 +128,11 @@ public class PasswordResetService {
     }
 
     public boolean verifyOtp(String email, String otp) {
-        logger.info("Verifying OTP: {} for email: {}", otp, email);
+        if (email == null || otp == null) {
+            logger.warn("Invalid OTP verification request: email or OTP is null");
+            return false;
+        }
+        logger.info("Verifying OTP for email: {}", email);
         PasswordResetToken resetToken = tokenRepository.findByTokenAndEmail(otp, email);
         if (resetToken == null) {
             logger.warn("No OTP found for email: {} with OTP: {}", email, otp);
@@ -140,28 +147,32 @@ public class PasswordResetService {
         return true;
     }
 
-    public boolean reset(String otp, String newPassword) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(otp);
+    public boolean reset(String email, String otp, String newPassword) {
+        if (email == null || otp == null || newPassword == null) {
+            logger.warn("Invalid reset request: email, OTP, or password is null");
+            return false;
+        }
+        PasswordResetToken resetToken = tokenRepository.findByTokenAndEmail(otp, email);
         if (resetToken != null && resetToken.getExpiryDate().isAfter(LocalDateTime.now())) {
             User user = resetToken.getUser();
             user.setPassword(passwordEncoderService.encodePassword(newPassword));
             userRepository.save(user);
             tokenRepository.delete(resetToken);
-            logger.info("Password reset successful for user: {}", user.getEmail());
+            logger.info("Password reset successful for user: {}", email);
             return true;
         }
-        logger.warn("Password reset failed: Invalid or expired OTP: {}", otp);
+        logger.warn("Password reset failed: Invalid or expired OTP for email: {}", email);
         return false;
     }
 
     public String resetPassword(PasswordResetDTO passwordResetDTO) {
-        String error = validateResetPasswordRequest(passwordResetDTO.getOtp(), passwordResetDTO.getNewPassword());
+        String error = validateResetPasswordRequest(passwordResetDTO.getEmail(), passwordResetDTO.getOtp(), passwordResetDTO.getNewPassword());
         if (error != null) {
             logger.warn("Validation error: {}", error);
             throw new IllegalArgumentException(error);
         }
 
-        boolean success = reset(passwordResetDTO.getOtp(), passwordResetDTO.getNewPassword());
+        boolean success = reset(passwordResetDTO.getEmail(), passwordResetDTO.getOtp(), passwordResetDTO.getNewPassword());
         if (success) {
             return "Password reset successful.";
         } else {
@@ -169,7 +180,10 @@ public class PasswordResetService {
         }
     }
 
-    private String validateResetPasswordRequest(String otp, String password) {
+    private String validateResetPasswordRequest(String email, String otp, String password) {
+        if (email == null || email.isEmpty()) {
+            return "Email must be provided.";
+        }
         if (otp == null || otp.isEmpty()) {
             return "OTP must be provided.";
         }

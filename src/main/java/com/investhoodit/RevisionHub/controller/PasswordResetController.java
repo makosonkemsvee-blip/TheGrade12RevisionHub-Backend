@@ -32,13 +32,13 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, null, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error sending OTP for email: {}, error: {}", email, e.getMessage());
-            return ResponseEntity.status(500).body(new ApiResponse<>(false, null, "Failed to send OTP"));
+            return ResponseEntity.status(500).body(new ApiResponse<>(false, null, "Failed to send OTP: " + e.getMessage()));
         }
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<String>> verifyOtp(@RequestBody OtpVerificationDTO otpVerificationDTO) {
-        logger.info("Verifying OTP: {} for email: {}", otpVerificationDTO.getOtp(), otpVerificationDTO.getEmail());
+        logger.info("Verifying OTP for email: {}", otpVerificationDTO.getEmail());
         try {
             boolean isValid = passwordResetService.verifyOtp(otpVerificationDTO.getEmail(), otpVerificationDTO.getOtp());
             if (isValid) {
@@ -53,11 +53,11 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, null, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error verifying OTP for email: {}, error: {}", otpVerificationDTO.getEmail(), e.getMessage());
-            return ResponseEntity.status(500).body(new ApiResponse<>(false, null, "Server error during OTP verification"));
+            return ResponseEntity.status(500).body(new ApiResponse<>(false, null, "Server error during OTP verification: " + e.getMessage()));
         }
     }
 
-    @PutMapping("/reset-password")
+    @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody PasswordResetDTO passwordResetDTO) {
         logger.info("Resetting password for email: {}", passwordResetDTO.getEmail());
         try {
@@ -69,7 +69,7 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(new ApiResponse<>(false, null, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error resetting password for email: {}, error: {}", passwordResetDTO.getEmail(), e.getMessage());
-            return ResponseEntity.status(500).body(new ApiResponse<>(false, null, "Password reset failed"));
+            return ResponseEntity.status(500).body(new ApiResponse<>(false, null, "Password reset failed: " + e.getMessage()));
         }
     }
 }
