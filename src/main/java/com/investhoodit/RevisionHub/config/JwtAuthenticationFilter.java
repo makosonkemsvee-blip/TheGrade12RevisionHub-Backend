@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.Key;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -38,20 +37,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String header = request.getHeader("Authorization");
-        logger.debug("Authorization header: {}", header);
-
-        if (header == null) {
-            logger.warn("Bearer token is null");
+        String path = request.getRequestURI();
+        // Skip JWT validation for public endpoints
+        if (path.startsWith("/api/auth/signup") ||
+                path.startsWith("/api/auth/verify-otp") ||
+                path.startsWith("/api/auth/resend-otp") ||
+                path.startsWith("/ws/")) {
+            logger.debug("Skipping JWT validation for path: {}", path);
             filterChain.doFilter(request, response);
             return;
         }
-        if (!header.startsWith("Bearer ")) {
-                logger.warn("No Bearer token found in Authorization header");
-                filterChain.doFilter(request, response);
-                return;
-            }
 
+        String header = request.getHeader("Authorization");
+        logger.debug("Authorization header: {}", header);
+
+        if (header == null || !header.startsWith("Bearer ")) {
+            logger.warn("No valid Bearer token found in Authorization header for path: {}", path);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String token = header.substring(7);
         String email = util.validateJwtAndGetEmail(token);
@@ -64,17 +68,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(auth);
-                    logger.info("Authenticated user: {}", email);
+                    logger.info("Authenticated user: {} for path: {}", email, path);
                 } else {
-                    logger.warn("UserDetails not found for email: {}", email);
+                    logger.warn("UserDetails not found for email: {} for path: {}", email, path);
                 }
             } catch (Exception e) {
-                logger.error("Error loading UserDetails for email: {}", email, e);
+                logger.error("Error loading UserDetails for email: {} for path: {}", email, path, e);
             }
         } else {
-            logger.warn("Invalid email or authentication already set: email={}", email);
+            logger.warn("Invalid email or authentication already set: email={} for path: {}", email, path);
         }
         filterChain.doFilter(request, response);
     }
-
 }

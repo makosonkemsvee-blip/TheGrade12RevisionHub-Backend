@@ -1,0 +1,56 @@
+package com.investhoodit.RevisionHub.controller;
+
+import com.investhoodit.RevisionHub.dto.SubjectMasteryDTO;
+import com.investhoodit.RevisionHub.model.ApiResponse;
+import com.investhoodit.RevisionHub.service.UserPaperPerformanceService;
+import com.investhoodit.RevisionHub.service.UserService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/user")
+public class PerformanceCountController {
+    private final UserPaperPerformanceService performanceService;
+    private final UserService userService;
+
+    public PerformanceCountController(UserPaperPerformanceService performanceService, UserService userService) {
+        this.performanceService = performanceService;
+        this.userService = userService;
+    }
+
+    @GetMapping("/completed-tasks")
+    public ResponseEntity<ApiResponse<Long>> getCompletedTasksCount() {
+        try {
+            long count = performanceService.getCompletedTasksCount();
+            return ResponseEntity.ok(new ApiResponse<>("Completed tasks count retrieved successfully", true, count));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Failed to retrieve completed tasks count: " + e.getMessage(), false, null));
+        }
+    }
+
+    @GetMapping("/courses")
+    public ResponseEntity<ApiResponse<List<SubjectMasteryDTO>>> getSubjectProgress() {
+        try {
+            List<SubjectMasteryDTO> progress = performanceService.getSubjectProgress();
+            return ResponseEntity.ok(new ApiResponse<>("Subject progress retrieved successfully", true, progress));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Failed to retrieve subject progress: " + e.getMessage(), false, null));
+        }
+    }
+
+    @GetMapping("/attendance")
+    public ResponseEntity<ApiResponse<Double>> getAttendancePercentage() {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            double percentage = userService.getAttendancePercentage(email);
+            return ResponseEntity.ok(new ApiResponse<>("Attendance percentage retrieved successfully", true, percentage));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ApiResponse<>("Failed to retrieve attendance percentage: " + e.getMessage(), false, null));
+        }
+    }
+}

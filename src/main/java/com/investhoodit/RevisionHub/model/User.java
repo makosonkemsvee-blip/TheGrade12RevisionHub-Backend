@@ -1,5 +1,8 @@
 package com.investhoodit.RevisionHub.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -7,17 +10,17 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Entity
 @Table(name = "user_tbl")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String firstName;
     private String lastName;
     private String idNumber;
@@ -33,45 +36,67 @@ public class User {
 
     @NotNull(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @JsonIgnore // Prevent password from being serialized
     private String password;
 
     @Lob
+    @JsonIgnore // Prevent binary data from being serialized
     private byte[] profilePicture;
+
     private String role;
 
     @Column(name = "first_login", nullable = false)
     private boolean firstLogin = true;
 
+    @Column(name = "otp_code")
+    @JsonIgnore // Prevent sensitive data from being serialized
+    private String otpCode;
+
+    @Column(name = "otp_expiry")
+    @JsonIgnore
+    private LocalDateTime otpExpiry;
+
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false;
+
     @OneToOne
     @JoinColumn(name = "settings_email")
+    @JsonIgnore // Ignore settings to avoid circular references
     private Settings settings;
 
-    public boolean isFirstLogin() {
-        return firstLogin;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Ignore related collections to prevent deep serialization
+    private List<UserSubjects> userSubjects;
 
-    public void setFirstLogin(boolean firstLogin) {
-        this.firstLogin = firstLogin;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<PerformanceMetric> performanceMetrics;
 
-    public byte[] getProfilePicture() {
-        return profilePicture;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<UserActivity> userActivities;
 
-    public void setProfilePicture(byte[] profilePicture) {
-        this.profilePicture = profilePicture;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<SubjectMastery> subjectMasteries;
 
-    public boolean getTwoFactorEnabled() {
-        return twoFactorEnabled;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Schedule> schedules;
 
-    public LocalDate getBirthday() {
-        return birthday;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<GroupMembership> groupMemberships;
 
-    public void setBirthday(LocalDate birthday) {
-        this.birthday = birthday;
-    }
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<UserPaperPerformance> userPaperPerformances;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Attendance attendances;
+
+    public boolean getTwoFactorEnabled() { return twoFactorEnabled; }
+    public boolean getIsVerified() { return isVerified; }
+    public void setIsVerified(boolean verified) { isVerified = verified; }
 }

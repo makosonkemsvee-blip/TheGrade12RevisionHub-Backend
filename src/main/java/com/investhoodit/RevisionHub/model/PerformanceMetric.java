@@ -35,19 +35,6 @@ public class PerformanceMetric {
     @Column(nullable = false)
     private double score;
 
-//    @Column(name = "max_score", nullable = false)
-//    private int maxScore;
-//
-//    @Column(name = "time_spent", nullable = false)
-//    private int timeSpent;
-//
-//    private String difficulty;
-//
-//    @Column(nullable = false)
-//    private String status;
-//
-//    private String comments;
-
     public PerformanceMetric() {
     }
 }

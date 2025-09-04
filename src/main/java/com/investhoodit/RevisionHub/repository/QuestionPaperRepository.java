@@ -11,5 +11,5 @@ import java.util.List;
 public interface QuestionPaperRepository extends JpaRepository<QuestionPaper, Long>, Serializable {
 
     List<QuestionPaper> findBySubject(Subject subject);
-    //List<QuestionPaper> findBySubjectsList(List<UserSubjects> subjects);
+    boolean existsByFileName(String fileName);
 }

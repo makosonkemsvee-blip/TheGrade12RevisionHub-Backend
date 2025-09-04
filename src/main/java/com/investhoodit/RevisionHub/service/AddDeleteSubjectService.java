@@ -131,4 +131,10 @@ public class AddDeleteSubjectService {
 		return subjectNames;
 	}
 
+//	public List<String> allSubjects() {
+//		return subjectRepository.findAll().stream()
+//				.map(Subject::getSubjectName)
+//				.collect(Collectors.toList());
+//	}
+
 }

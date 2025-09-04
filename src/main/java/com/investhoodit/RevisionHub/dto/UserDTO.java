@@ -17,7 +17,7 @@ public class UserDTO {
     private boolean twoFactorEnabled;
     private String profilePicture; // Added field for Base64-encoded profile picture
 
-    public UserDTO(Long id, String email, String firstName, String lastName, String role, String createdAt, boolean twoFactorEnabled) {
+    public UserDTO(Long id, String firstName, String lastName,String email, String role, String createdAt, boolean twoFactorEnabled) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;

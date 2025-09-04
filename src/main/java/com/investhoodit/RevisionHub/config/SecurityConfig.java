@@ -24,30 +24,28 @@ public class SecurityConfig {
 
     private final JwtUtil util;
     private final CustomerUserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtUtil util, CustomerUserDetailsService userDetailsService) {
+    public SecurityConfig(JwtUtil util, CustomerUserDetailsService userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.util = util;
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf
-                        .disable())
-                .cors(cors -> cors
-                        .configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/ws/**").permitAll()
-                        .requestMatchers("/api/user/**").hasAnyRole("USER","ADMIN")
+                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/certificates/save").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(util,userDetailsService),
-                        UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -60,35 +58,22 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Allow frontend origins
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",      // React dev server
-                "https://your-production-app.com" // Production
+                "http://localhost:3000",
+                "https://revisionhub.com" // Update to your production URL
         ));
-
-        // Allow methods
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
         ));
-
-        // Allow headers
         configuration.setAllowedHeaders(Arrays.asList(
                 "Authorization", "Cache-Control", "Content-Type"
         ));
-
-        // Expose headers
         configuration.setExposedHeaders(List.of("Authorization"));
-
-        // Allow credentials
         configuration.setAllowCredentials(true);
-
-        // Set max age
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

@@ -105,27 +105,6 @@ public class UserController {
             String profilePicture
     ) {}
 
-    @PostMapping("/change-password")
-    public ResponseEntity<Map<String, String>> changePassword(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody PasswordChangeDTO passwordChangeDTO) {
-        log.info("Attempting password change for user: {}", userDetails != null ? userDetails.getUsername() : "null");
-        if (userDetails == null) {
-            log.warn("No UserDetails provided, returning 401");
-            return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
-        }
-        try {
-            userService.changePassword(userDetails, passwordChangeDTO);
-            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
-        } catch (IllegalArgumentException e) {
-            log.error("Password change failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            log.error("Unexpected error during password change: {}", e.getMessage());
-            return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
-        }
-    }
-
     @PostMapping("/save-profile")
     public ResponseEntity<Map<String, String>> saveProfile(
             @AuthenticationPrincipal UserDetails userDetails,

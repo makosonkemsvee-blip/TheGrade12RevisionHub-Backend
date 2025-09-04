@@ -1,5 +1,6 @@
 package com.investhoodit.RevisionHub.controller;
 
+import com.investhoodit.RevisionHub.dto.PasswordChangeDTO;
 import com.investhoodit.RevisionHub.dto.ProfileUpdateRequest;
 import com.investhoodit.RevisionHub.dto.UserResponse;
 import com.investhoodit.RevisionHub.model.ApiResponse;
@@ -9,16 +10,20 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/profile")
 public class ProfileController {
 
     private final ProfileManagementService profileManagementService;
+
 
     public ProfileController(ProfileManagementService profileManagementService) {
         this.profileManagementService = profileManagementService;
@@ -44,5 +49,16 @@ public class ProfileController {
     @GetMapping("/getUserDetails")
     public ResponseEntity<ApiResponse<UserResponse>> getUserDetails(){
         return profileManagementService.getUserDetails();
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            @RequestBody PasswordChangeDTO passwordChangeDTO) {
+        return profileManagementService.changePassword(passwordChangeDTO);
+    }
+
+    @DeleteMapping("/delete-account")
+    public ResponseEntity<String> deleteAccount(){
+        return profileManagementService.deleteAccount();
     }
 }
