@@ -97,4 +97,12 @@ public class User {
     public boolean getTwoFactorEnabled() { return twoFactorEnabled; }
     public boolean getIsVerified() { return isVerified; }
     public void setIsVerified(boolean verified) { isVerified = verified; }
+
+    public String getIdNumber() {
+        return idNumber;
+    }
+
+    public void setIdNumber(String idNumber) {
+        this.idNumber = idNumber;
+    }
 }

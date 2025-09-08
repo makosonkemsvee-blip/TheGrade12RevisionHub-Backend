@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -125,5 +126,22 @@ public class UserController {
             return ResponseEntity.status(500).body(Map.of("error", "Internal server error"));
         }
     }
+//
+//    @GetMapping("/certificates/count")
+//    public ResponseEntity<Map<String, Object>> getCertificateCount() {
+//        try {
+//            long count = userService.getCertificateCountForCurrentUser();
+//            Map<String, Object> response = new HashMap<>();
+//            response.put("success", true);
+//            response.put("data", count);
+//            return ResponseEntity.ok(response);
+//
+//        } catch (Exception e) {
+//            Map<String, Object> response = new HashMap<>();
+//            response.put("success", false);
+//            response.put("message", "Failed to fetch certificate count: " + e.getMessage());
+//            return ResponseEntity.status(500).body(response);
+//        }
+//    }
 
 }

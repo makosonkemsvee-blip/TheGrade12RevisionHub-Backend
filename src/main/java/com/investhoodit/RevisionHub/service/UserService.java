@@ -5,6 +5,7 @@ import com.investhoodit.RevisionHub.dto.RegisterRequestDTO;
 import com.investhoodit.RevisionHub.model.Attendance;
 import com.investhoodit.RevisionHub.model.User;
 import com.investhoodit.RevisionHub.repository.AttendanceRepository;
+import com.investhoodit.RevisionHub.repository.CertificateRepository;
 import com.investhoodit.RevisionHub.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
@@ -26,11 +27,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoderService passwordEncoderService;
     private final AttendanceRepository attendanceRepository;
+    private final CertificateRepository repository;
 
-    public UserService(UserRepository userRepository, PasswordEncoderService passwordEncoderService, AttendanceRepository attendanceRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoderService passwordEncoderService, AttendanceRepository attendanceRepository, CertificateRepository repository) {
         this.userRepository = userRepository;
         this.passwordEncoderService = passwordEncoderService;
         this.attendanceRepository = attendanceRepository;
+        this.repository = repository;
     }
 
     public void saveProfile(String email, Map<String, Object> profileData) {
@@ -152,5 +155,8 @@ public class UserService {
         return percentage;
     }
 
+//    public long countUserCertificates(Long userId) {
+//        return repository.countCertificatesByUserId(userId);
+//    }
 
 }

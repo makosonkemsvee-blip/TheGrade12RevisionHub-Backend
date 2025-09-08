@@ -19,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT us.subject.subjectName FROM UserSubjects us WHERE us.user = :user")
     List<String> findEnrolledSubjectsByUser(@Param("user") User user);
 
+
+
 }
