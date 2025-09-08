@@ -27,11 +27,6 @@ public class CertificateController {
 
     }
 
-    @PostMapping("/save")
-    public Certificate saveCertificate(@RequestBody Certificate certificate) {
-        return service.saveCertificate(certificate);
-    }
-
     @GetMapping("/count")
     public ResponseEntity<Integer> getCertificateCount() {
         int count = service.countCert();

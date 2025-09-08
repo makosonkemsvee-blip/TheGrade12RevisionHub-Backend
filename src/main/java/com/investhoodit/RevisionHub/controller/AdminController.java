@@ -4,16 +4,10 @@ import com.investhoodit.RevisionHub.dto.EmailRequestDTO;
 import com.investhoodit.RevisionHub.dto.QuizDTO;
 import com.investhoodit.RevisionHub.dto.ScoreResponseDTO;
 import com.investhoodit.RevisionHub.dto.UserAnswerDTO;
-import com.investhoodit.RevisionHub.model.QuestionPaper;
-import com.investhoodit.RevisionHub.model.Quiz;
-import com.investhoodit.RevisionHub.model.Subject;
-import com.investhoodit.RevisionHub.model.User;
+import com.investhoodit.RevisionHub.model.*;
 import com.investhoodit.RevisionHub.repository.QuizRepository;
 import com.investhoodit.RevisionHub.repository.SubjectRepository;
-import com.investhoodit.RevisionHub.service.EmailService;
-import com.investhoodit.RevisionHub.service.QuestionPaperService;
-import com.investhoodit.RevisionHub.service.QuizService;
-import com.investhoodit.RevisionHub.service.UserService;
+import com.investhoodit.RevisionHub.service.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,16 +33,23 @@ public class AdminController {
     private final EmailService emailService;
     private final QuizRepository quizRepository;
     private final QuizService quizService;
+    private final CertificateService service;
 
     public AdminController(UserService userService,
                            QuestionPaperService questionPaperService,
-                           SubjectRepository subjectRepository, EmailService emailService, QuizRepository quizRepository, QuizService quizService) {
+                           SubjectRepository subjectRepository, EmailService emailService, QuizRepository quizRepository, QuizService quizService, CertificateService service) {
         this.userService = userService;
         this.questionPaperService = questionPaperService;
         this.subjectRepository = subjectRepository;
         this.emailService = emailService;
         this.quizRepository = quizRepository;
         this.quizService = quizService;
+        this.service = service;
+    }
+
+    @PostMapping("/certificates/save")
+    public Certificate saveCertificate(@RequestBody Certificate certificate) {
+        return service.saveCertificate(certificate);
     }
 
     @GetMapping("/students")
