@@ -38,9 +38,14 @@ public class UserPaperPerformanceController {
             User user = performanceService.findByToken();
 
             // Process request
-            PerformanceMetric performance = performanceService.recordAttempt(request);
+           PerformanceMetric performance = performanceService.recordAttempt(request);
+
+            //save via PerformanceServiceService so notification is triggered
+            PerformanceMetric savedPerformance = perfService.savePerformanceMetric(performance);
+
+
             response.put("success", true);
-            response.put("data", performance);
+            response.put("data", savedPerformance);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
