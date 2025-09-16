@@ -74,8 +74,9 @@ public class PerformanceService {
                     " (" + activityName + ", " + subjectName + "). Keep practicing!";
         }
 
-        //prevents duplications
-        notificationService.createIfNotExists(userId, message, "PERFORMANCE");
+
+
+        notificationService.createNotification(userId, message, "PERFORMANCE");
 
         return saved;
     }

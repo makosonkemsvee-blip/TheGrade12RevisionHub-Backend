@@ -143,7 +143,7 @@ public class NotificationService {
         }
     }
 
-    public Notification createIfNotExists(Long userId, String message, String type) {
+   /* public Notification createIfNotExists(Long userId, String message, String type) {
         // Check if the same notification already exists for this user
         if (repository.existsByUserIdAndMessage(userId, message)) {
             logger.info("Skipping duplicate notification for userId={}, message={}", userId, message);
@@ -151,6 +151,6 @@ public class NotificationService {
         }
 
         return createNotification(userId, message, type);
-    }
+    }*/
 
 }

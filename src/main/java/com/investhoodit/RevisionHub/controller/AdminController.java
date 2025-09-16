@@ -34,10 +34,11 @@ public class AdminController {
     private final QuizRepository quizRepository;
     private final QuizService quizService;
     private final CertificateService service;
+    private final NotificationService notificationService;
 
     public AdminController(UserService userService,
                            QuestionPaperService questionPaperService,
-                           SubjectRepository subjectRepository, EmailService emailService, QuizRepository quizRepository, QuizService quizService, CertificateService service) {
+                           SubjectRepository subjectRepository, EmailService emailService, QuizRepository quizRepository, QuizService quizService, CertificateService service, NotificationService notificationService) {
         this.userService = userService;
         this.questionPaperService = questionPaperService;
         this.subjectRepository = subjectRepository;
@@ -45,6 +46,7 @@ public class AdminController {
         this.quizRepository = quizRepository;
         this.quizService = quizService;
         this.service = service;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("/certificates/save")
@@ -123,6 +125,7 @@ public class AdminController {
         }
         try {
             Quiz quiz = quizService.createQuiz(quizDTO);
+
             return ResponseEntity.ok("Quiz created successfully for : " + quiz.getSubject());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid data: " + e.getMessage());
